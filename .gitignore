@@ -1,0 +1,12 @@
+# AI-generated/private documentation must never be tracked, committed, or pushed.
+/ai_docs/
+
+# .NET build outputs and local tooling
+**/bin/
+**/obj/
+.vs/
+*.user
+*.suo
+
+# Local runtime logs
+*.log
