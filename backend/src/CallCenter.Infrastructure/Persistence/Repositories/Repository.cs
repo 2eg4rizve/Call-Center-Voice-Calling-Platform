@@ -1,5 +1,5 @@
 using System.Linq.Expressions;
-using CallCenter.Application.Common.Interfaces;
+using CallCenter.Application.Common.Interfaces.Repositories;
 using CallCenter.Domain.Common;
 using Microsoft.EntityFrameworkCore;
 

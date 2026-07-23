@@ -1,4 +1,4 @@
-using CallCenter.Application.Common.Interfaces;
+using CallCenter.Application.Common.Interfaces.Repositories;
 using CallCenter.Infrastructure.Persistence;
 using CallCenter.Infrastructure.Persistence.Repositories;
 using Microsoft.EntityFrameworkCore;

@@ -1,6 +1,8 @@
-using CallCenter.Application.Common.Interfaces;
+using CallCenter.Application.Common.Interfaces.Repositories;
 using CallCenter.Domain.Common;
 using CallCenter.Infrastructure.Persistence.Repositories;
+using Microsoft.EntityFrameworkCore;
+using System.Data;
 
 namespace CallCenter.Infrastructure.Persistence;
 
@@ -25,4 +27,15 @@ internal sealed class UnitOfWork(CallCenterDbContext dbContext) : IUnitOfWork
 
     public Task<int> SaveChangesAsync(CancellationToken cancellationToken = default) =>
         dbContext.SaveChangesAsync(cancellationToken);
+
+    public async Task<ITransaction> BeginTransactionAsync(
+        IsolationLevel isolationLevel = IsolationLevel.ReadCommitted,
+        CancellationToken cancellationToken = default)
+    {
+        var transaction = await dbContext.Database.BeginTransactionAsync(
+            isolationLevel,
+            cancellationToken);
+
+        return new EfTransaction(transaction);
+    }
 }
