@@ -1,10 +1,12 @@
 using CallCenter.Domain.Entities;
+using CallCenter.Infrastructure.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 namespace CallCenter.Infrastructure.Persistence;
 
 public sealed class CallCenterDbContext(DbContextOptions<CallCenterDbContext> options)
-    : DbContext(options)
+    : IdentityDbContext<ApplicationUser>(options)
 {
     public DbSet<Agent> Agents => Set<Agent>();
 

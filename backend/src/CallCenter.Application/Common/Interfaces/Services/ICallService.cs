@@ -34,5 +34,6 @@ public interface ICallService
 
     Task<CallDetailsResponseDto> GetDetailsAsync(
         Guid callId,
+        Guid? restrictedAgentId = null,
         CancellationToken cancellationToken = default);
 }
