@@ -40,6 +40,13 @@ public static class DependencyInjection
         services.AddScoped<IUnitOfWork, UnitOfWork>();
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<IAgentService, AgentService>();
+        services.AddScoped<ICallQueueService, CallQueueService>();
+        services.AddScoped<ICustomerService, CustomerService>();
+        services.AddScoped<ITelephonyProvider, MockTelephonyProvider>();
+        services.AddScoped<ICrmSimulationService, CrmSimulationService>();
+        services.AddScoped<ICallAssignmentService, CallAssignmentService>();
+        services.AddScoped<ICallService, CallService>();
+        services.AddScoped<IDashboardService, DashboardService>();
 
         return services;
     }

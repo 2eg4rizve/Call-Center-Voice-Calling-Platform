@@ -11,7 +11,11 @@ using Microsoft.EntityFrameworkCore;
 
 namespace CallCenter.Infrastructure.Services;
 
-internal sealed class AgentService(CallCenterDbContext db, UserManager<ApplicationUser> users, IMapper mapper) : IAgentService
+internal sealed class AgentService(
+    CallCenterDbContext db,
+    UserManager<ApplicationUser> users,
+    ICallAssignmentService callAssignmentService,
+    IMapper mapper) : IAgentService
 {
     public async Task<AgentResponseDto> CreateAsync(CreateAgentRequestDto request, CancellationToken cancellationToken = default)
     {
@@ -31,6 +35,8 @@ internal sealed class AgentService(CallCenterDbContext db, UserManager<Applicati
         agent.DisplayName = request.DisplayName;
         agent.UpdatedAtUtc = DateTimeOffset.UtcNow;
         await db.SaveChangesAsync(cancellationToken);
+        if (agent.Status == AgentStatus.Available)
+            await callAssignmentService.TryAssignNextWaitingCallToAgentAsync(agent.Id, cancellationToken);
         return mapper.Map<AgentResponseDto>(agent);
     }
 
