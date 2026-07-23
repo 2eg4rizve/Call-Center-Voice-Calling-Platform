@@ -5,6 +5,10 @@ namespace CallCenter.Application.Common.Interfaces.Services;
 
 public interface IAuthService
 {
+    Task<LoginResponseDto> SignupAsync(
+        SignupRequestDto request,
+        CancellationToken cancellationToken = default);
+
     Task<LoginResponseDto> LoginAsync(
         LoginRequestDto request,
         CancellationToken cancellationToken = default);

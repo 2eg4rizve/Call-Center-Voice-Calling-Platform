@@ -12,9 +12,20 @@ internal sealed class GlobalExceptionHandler(
         Exception exception,
         CancellationToken cancellationToken)
     {
-        logger.LogError(exception, "An unhandled exception occurred while processing the request.");
+        var (status, title, detail) = exception switch
+        {
+            ArgumentException => (StatusCodes.Status400BadRequest, "Invalid request.", exception.Message),
+            UnauthorizedAccessException => (StatusCodes.Status401Unauthorized, "Unauthorized.", exception.Message),
+            KeyNotFoundException => (StatusCodes.Status404NotFound, "Resource not found.", exception.Message),
+            _ => (StatusCodes.Status500InternalServerError, "An unexpected error occurred.", "The server could not complete the request.")
+        };
 
-        httpContext.Response.StatusCode = StatusCodes.Status500InternalServerError;
+        if (status >= StatusCodes.Status500InternalServerError)
+            logger.LogError(exception, "An unhandled exception occurred while processing the request.");
+        else
+            logger.LogWarning("Request failed with status {StatusCode}: {Message}", status, exception.Message);
+
+        httpContext.Response.StatusCode = status;
 
         return await problemDetailsService.TryWriteAsync(new ProblemDetailsContext
         {
@@ -22,9 +33,9 @@ internal sealed class GlobalExceptionHandler(
             Exception = exception,
             ProblemDetails = new ProblemDetails
             {
-                Status = StatusCodes.Status500InternalServerError,
-                Title = "An unexpected error occurred.",
-                Detail = "The server could not complete the request."
+                Status = status,
+                Title = title,
+                Detail = detail
             }
         });
     }
