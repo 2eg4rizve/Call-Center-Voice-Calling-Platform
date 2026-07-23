@@ -16,13 +16,13 @@ public sealed class CallHistoryResponseDto
 
     public string? AgentDisplayName { get; init; }
 
-    public string QueueName { get; init; } = string.Empty;
+    public string CallQueueName { get; init; } = string.Empty;
 
-    public DateTimeOffset CreatedAt { get; init; }
+    public DateTimeOffset CreatedAtUtc { get; init; }
 
-    public DateTimeOffset? CompletedAt { get; init; }
+    public DateTimeOffset? CompletedAtUtc { get; init; }
 
-    public TimeSpan? Duration { get; init; }
+    public int? DurationSeconds { get; init; }
 
     public CallOutcome? Outcome { get; init; }
 }

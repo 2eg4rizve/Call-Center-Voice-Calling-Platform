@@ -1,8 +1,8 @@
 using AutoMapper;
 using CallCenter.Application.Agents.Dtos;
+using CallCenter.Application.CallQueues.Dtos;
 using CallCenter.Application.Calls.Dtos;
 using CallCenter.Application.Customers.Dtos;
-using CallCenter.Application.Queues.Dtos;
 using CallCenter.Domain.Entities;
 
 namespace CallCenter.Application.Common.Mappings;
@@ -11,26 +11,23 @@ public sealed class MappingProfile : Profile
 {
     public MappingProfile()
     {
-        CreateMap<Agent, AgentResponseDto>();
+        CreateMap<Agent, AgentResponseDto>()
+            .ForMember(destination => destination.CallQueueIds, options => options.MapFrom(source =>
+                source.AgentQueues.Select(agentQueue => agentQueue.CallQueueId)));
         CreateMap<Agent, AgentSummaryResponseDto>();
         CreateMap<Customer, CustomerResponseDto>();
-        CreateMap<Queue, QueueResponseDto>();
-        CreateMap<Call, CallResponseDto>()
-            .ForMember(destination => destination.Duration, options => options.MapFrom(source =>
-                source.AcceptedAt.HasValue && source.CompletedAt.HasValue
-                    ? source.CompletedAt.Value - source.AcceptedAt.Value
-                    : (TimeSpan?)null));
-        CreateMap<Call, AssignedCallResponseDto>();
+        CreateMap<CallQueue, CallQueueResponseDto>();
+        CreateMap<Call, CallResponseDto>();
         CreateMap<Call, CallHistoryResponseDto>()
-            .ForMember(destination => destination.Duration, options => options.MapFrom(source =>
-                source.AcceptedAt.HasValue && source.CompletedAt.HasValue
-                    ? source.CompletedAt.Value - source.AcceptedAt.Value
-                    : (TimeSpan?)null));
+            .ForMember(destination => destination.CustomerName, options => options.MapFrom(source =>
+                source.Customer == null ? null : source.Customer.Name))
+            .ForMember(destination => destination.AgentDisplayName, options => options.MapFrom(source =>
+                source.AssignedAgent == null ? null : source.AssignedAgent.DisplayName))
+            .ForMember(destination => destination.CallQueueName, options => options.MapFrom(source =>
+                source.CallQueue.Name));
         CreateMap<Call, CallDetailsResponseDto>()
-            .ForMember(destination => destination.Duration, options => options.MapFrom(source =>
-                source.AcceptedAt.HasValue && source.CompletedAt.HasValue
-                    ? source.CompletedAt.Value - source.AcceptedAt.Value
-                    : (TimeSpan?)null));
+            .ForMember(destination => destination.Events, options => options.MapFrom(source =>
+                source.CallEvents));
         CreateMap<CallEvent, CallEventResponseDto>();
     }
 }

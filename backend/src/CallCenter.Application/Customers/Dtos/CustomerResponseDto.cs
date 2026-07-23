@@ -10,9 +10,9 @@ public sealed class CustomerResponseDto
 
     public string PhoneNumber { get; init; } = string.Empty;
 
-    public string EmailAddress { get; init; } = string.Empty;
+    public string? EmailAddress { get; init; }
 
-    public string CustomerCategory { get; init; } = string.Empty;
+    public string? CustomerCategory { get; init; }
 
-    public string RecentInteractionSummary { get; init; } = string.Empty;
+    public string? RecentInteractionSummary { get; init; }
 }

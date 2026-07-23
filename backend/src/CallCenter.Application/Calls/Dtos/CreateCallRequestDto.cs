@@ -4,9 +4,10 @@ namespace CallCenter.Application.Calls.Dtos;
 
 public sealed class CreateCallRequestDto
 {
-    [Required, Phone]
-    public string CallerPhoneNumber { get; init; } = string.Empty;
+    public Guid? CustomerId { get; init; }
 
-    [Required]
-    public Guid QueueId { get; init; }
+    [Phone]
+    public string? CallerPhoneNumber { get; init; }
+
+    public Guid CallQueueId { get; init; }
 }

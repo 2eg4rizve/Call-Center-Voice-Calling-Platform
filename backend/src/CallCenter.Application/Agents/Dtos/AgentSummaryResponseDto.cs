@@ -10,7 +10,5 @@ public sealed class AgentSummaryResponseDto
 
     public AgentStatus Status { get; init; }
 
-    public DateTimeOffset? LastAvailableAt { get; init; }
-
-    public Guid? CurrentActiveCallId { get; init; }
+    public DateTimeOffset? LastAvailableAtUtc { get; init; }
 }

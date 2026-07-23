@@ -1,6 +1,6 @@
 using CallCenter.Application.Agents.Dtos;
 using CallCenter.Application.Customers.Dtos;
-using CallCenter.Application.Queues.Dtos;
+using CallCenter.Application.CallQueues.Dtos;
 using CallCenter.Domain.Enums;
 
 namespace CallCenter.Application.Calls.Dtos;
@@ -19,19 +19,19 @@ public sealed class CallDetailsResponseDto
 
     public CustomerResponseDto? Customer { get; init; }
 
-    public QueueResponseDto Queue { get; init; } = new();
+    public CallQueueResponseDto CallQueue { get; init; } = new();
 
     public AgentSummaryResponseDto? AssignedAgent { get; init; }
 
-    public DateTimeOffset CreatedAt { get; init; }
+    public DateTimeOffset CreatedAtUtc { get; init; }
 
-    public DateTimeOffset? AssignedAt { get; init; }
+    public DateTimeOffset? AssignedAtUtc { get; init; }
 
-    public DateTimeOffset? AcceptedAt { get; init; }
+    public DateTimeOffset? AcceptedAtUtc { get; init; }
 
-    public DateTimeOffset? CompletedAt { get; init; }
+    public DateTimeOffset? CompletedAtUtc { get; init; }
 
-    public TimeSpan? Duration { get; init; }
+    public int? DurationSeconds { get; init; }
 
     public CallOutcome? Outcome { get; init; }
 

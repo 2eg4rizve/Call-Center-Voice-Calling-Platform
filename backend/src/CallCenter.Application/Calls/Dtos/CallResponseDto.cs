@@ -16,17 +16,17 @@ public sealed class CallResponseDto
 
     public Guid? CustomerId { get; init; }
 
-    public Guid QueueId { get; init; }
+    public Guid CallQueueId { get; init; }
 
     public Guid? AssignedAgentId { get; init; }
 
-    public DateTimeOffset CreatedAt { get; init; }
+    public DateTimeOffset CreatedAtUtc { get; init; }
 
-    public DateTimeOffset? AssignedAt { get; init; }
+    public DateTimeOffset? AssignedAtUtc { get; init; }
 
-    public DateTimeOffset? AcceptedAt { get; init; }
+    public DateTimeOffset? AcceptedAtUtc { get; init; }
 
-    public DateTimeOffset? CompletedAt { get; init; }
+    public DateTimeOffset? CompletedAtUtc { get; init; }
 
     public CallOutcome? Outcome { get; init; }
 
@@ -34,5 +34,5 @@ public sealed class CallResponseDto
 
     public CrmSyncStatus CrmSyncStatus { get; init; }
 
-    public TimeSpan? Duration { get; init; }
+    public int? DurationSeconds { get; init; }
 }

@@ -9,9 +9,11 @@ public sealed class Agent : BaseEntity
 
     public string DisplayName { get; set; } = string.Empty;
 
-    public AgentStatus Status { get; set; }
+    public AgentStatus Status { get; set; } = AgentStatus.Offline;
 
-    public DateTimeOffset? LastAvailableAt { get; set; }
+    public DateTimeOffset? LastAvailableAtUtc { get; set; }
 
-    public Guid? CurrentActiveCallId { get; set; }
+    public ICollection<AgentQueue> AgentQueues { get; set; } = [];
+
+    public ICollection<Call> AssignedCalls { get; set; } = [];
 }

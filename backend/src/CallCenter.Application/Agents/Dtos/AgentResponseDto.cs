@@ -12,9 +12,7 @@ public sealed class AgentResponseDto
 
     public AgentStatus Status { get; init; }
 
-    public DateTimeOffset? LastAvailableAt { get; init; }
+    public DateTimeOffset? LastAvailableAtUtc { get; init; }
 
-    public Guid? CurrentActiveCallId { get; init; }
-
-    public IReadOnlyCollection<Guid> QueueIds { get; init; } = [];
+    public IReadOnlyCollection<Guid> CallQueueIds { get; init; } = [];
 }

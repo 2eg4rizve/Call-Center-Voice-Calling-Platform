@@ -10,9 +10,11 @@ public sealed class Customer : BaseEntity
 
     public string PhoneNumber { get; set; } = string.Empty;
 
-    public string EmailAddress { get; set; } = string.Empty;
+    public string? EmailAddress { get; set; }
 
-    public string CustomerCategory { get; set; } = string.Empty;
+    public string? CustomerCategory { get; set; }
 
-    public string RecentInteractionSummary { get; set; } = string.Empty;
+    public string? RecentInteractionSummary { get; set; }
+
+    public ICollection<Call> Calls { get; set; } = [];
 }

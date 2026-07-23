@@ -1,12 +1,14 @@
+using CallCenter.Domain.Enums;
+
 namespace CallCenter.Application.Calls.Dtos;
 
 public sealed class CallEventResponseDto
 {
     public Guid Id { get; init; }
 
-    public string EventType { get; init; } = string.Empty;
+    public CallEventType EventType { get; init; }
 
-    public DateTimeOffset EventTime { get; init; }
+    public DateTimeOffset EventAtUtc { get; init; }
 
     public string? Details { get; init; }
 }
