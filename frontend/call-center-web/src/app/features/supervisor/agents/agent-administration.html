@@ -1,0 +1,57 @@
+<app-page-header eyebrow="Supervisor" title="Agent administration" description="Create agents, update display names, and add queue memberships." />
+@if (formError()) { <div class="form-error" role="alert">{{ formError() }}</div> }
+@if (loading()) { <app-feedback-state state="loading" title="Loading agents" /> }
+@else if (error()) { <app-feedback-state state="error" title="Agents unavailable" message="Check the API connection and retry." (retry)="load()" /> }
+@else {
+  <div class="grid">
+    <section><app-responsive-table label="Agents"><table><thead><tr><th>Agent</th><th>Status</th><th>Last available</th><th>Current call</th><th></th></tr></thead><tbody>
+      @for (agent of agents(); track agent.id) { <tr><td>{{ agent.displayName }}</td><td><app-status-chip [status]="agent.status" /></td><td>{{ agent.lastAvailableAtUtc | localDateTime }}</td><td>{{ agent.currentCallReference || '—' }}</td><td><button matButton type="button" (click)="choose(agent)">Manage</button></td></tr> }
+      @empty { <tr><td colspan="5">No agents found.</td></tr> }
+    </tbody></table></app-responsive-table></section>
+
+    <aside class="panels">
+      <mat-card appearance="outlined"><mat-card-header><mat-card-title>Create agent</mat-card-title></mat-card-header><mat-card-content>
+        <p class="requirements">All fields required. Password 8–100 characters-er sathe minimum 1 uppercase, 1 lowercase, ar 1 special character thakte hobe.</p>
+        <form [formGroup]="createForm" (ngSubmit)="create()">
+          <mat-form-field appearance="outline"><mat-label>Full name</mat-label><input matInput formControlName="fullName" />
+            @if (createForm.controls.fullName.touched && createForm.controls.fullName.hasError('required')) { <mat-error>Full name required.</mat-error> }
+            @if (createForm.controls.fullName.hasError('maxlength')) { <mat-error>Maximum 150 characters allowed.</mat-error> }
+            @if (createForm.controls.fullName.hasError('server')) { <mat-error>{{ createForm.controls.fullName.getError('server')[0] }}</mat-error> }
+          </mat-form-field>
+          <mat-form-field appearance="outline"><mat-label>Display name</mat-label><input matInput formControlName="displayName" />
+            @if (createForm.controls.displayName.touched && createForm.controls.displayName.hasError('required')) { <mat-error>Display name required.</mat-error> }
+            @if (createForm.controls.displayName.hasError('maxlength')) { <mat-error>Maximum 150 characters allowed.</mat-error> }
+            @if (createForm.controls.displayName.hasError('server')) { <mat-error>{{ createForm.controls.displayName.getError('server')[0] }}</mat-error> }
+          </mat-form-field>
+          <mat-form-field appearance="outline"><mat-label>Email</mat-label><input matInput type="email" formControlName="email" />
+            @if (createForm.controls.email.touched && createForm.controls.email.hasError('required')) { <mat-error>Email required.</mat-error> }
+            @if (createForm.controls.email.hasError('email')) { <mat-error>Valid email din, example: agent&#64;company.com</mat-error> }
+            @if (createForm.controls.email.hasError('maxlength')) { <mat-error>Maximum 256 characters allowed.</mat-error> }
+            @if (createForm.controls.email.hasError('server')) { <mat-error>{{ createForm.controls.email.getError('server')[0] }}</mat-error> }
+          </mat-form-field>
+          <mat-form-field appearance="outline"><mat-label>Temporary password</mat-label><input matInput type="password" formControlName="password" autocomplete="new-password" /><mat-hint>Example format: Agent&#64;12345</mat-hint>
+            @if (createForm.controls.password.touched && createForm.controls.password.hasError('required')) { <mat-error>Password required.</mat-error> }
+            @if (createForm.controls.password.hasError('minlength')) { <mat-error>Minimum 8 characters required.</mat-error> }
+            @if (createForm.controls.password.hasError('maxlength')) { <mat-error>Maximum 100 characters allowed.</mat-error> }
+            @if (createForm.controls.password.hasError('pattern')) { <mat-error>Minimum 1 uppercase, 1 lowercase, ar 1 special character required.</mat-error> }
+            @if (createForm.controls.password.hasError('server')) { <mat-error>{{ createForm.controls.password.getError('server')[0] }}</mat-error> }
+          </mat-form-field>
+          <button matButton="filled" type="submit" [appPendingAction]="pending()">{{ pending() ? 'Creating…' : 'Create agent' }}</button>
+        </form>
+      </mat-card-content></mat-card>
+
+      @if (selected(); as agent) { <mat-card appearance="outlined"><mat-card-header><mat-card-title>Manage {{ agent.displayName }}</mat-card-title></mat-card-header><mat-card-content>
+        <form [formGroup]="editForm" (ngSubmit)="update()"><mat-form-field appearance="outline"><mat-label>Display name</mat-label><input matInput formControlName="displayName" />
+          @if (editForm.controls.displayName.touched && editForm.controls.displayName.hasError('required')) { <mat-error>Display name required.</mat-error> }
+          @if (editForm.controls.displayName.hasError('maxlength')) { <mat-error>Maximum 150 characters allowed.</mat-error> }
+          @if (editForm.controls.displayName.hasError('server')) { <mat-error>{{ editForm.controls.displayName.getError('server')[0] }}</mat-error> }
+        </mat-form-field><button matButton="filled" type="submit" [appPendingAction]="pending()">Save name</button></form>
+        <hr />
+        <form [formGroup]="assignmentForm" (ngSubmit)="assign()"><mat-form-field appearance="outline"><mat-label>Add to queue</mat-label><mat-select formControlName="callQueueId">@for (queue of queues(); track queue.id) { <mat-option [value]="queue.id">{{ queue.name }}</mat-option> }</mat-select>
+          @if (assignmentForm.controls.callQueueId.touched && assignmentForm.controls.callQueueId.hasError('required')) { <mat-error>Queue select kora required.</mat-error> }
+        </mat-form-field><button matButton type="submit" [appPendingAction]="pending()">Assign queue</button></form>
+        <p class="limitation">Queue assignment additive and idempotent. Current API queue membership reliably display ba remove korte pare na.</p>
+      </mat-card-content></mat-card> }
+    </aside>
+  </div>
+}

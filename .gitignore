@@ -10,3 +10,6 @@
 
 # Local runtime logs
 *.log
+
+# Repository-local development toolchains
+/.tools/

@@ -1,0 +1,20 @@
+.shell { min-height: 100dvh; }
+.topbar { background: var(--color-surface); border-bottom: 1px solid var(--color-border); gap: .75rem; position: sticky; top: 0; z-index: 10; }
+.brand, .sidebar__brand { align-items: center; color: var(--color-text); display: flex; font-weight: 700; gap: .65rem; text-decoration: none; }
+.brand-mark { align-items: center; background: var(--color-primary); border-radius: .55rem; color: white; display: inline-flex; font-size: .7rem; height: 2rem; justify-content: center; width: 2rem; }
+.spacer { flex: 1; }
+.identity { display: flex; flex-direction: column; font-size: .75rem; line-height: 1.25; text-align: right; }
+.identity span { color: var(--color-text-muted); }
+.layout { display: grid; grid-template-columns: 15rem minmax(0, 1fr); min-height: calc(100dvh - 4rem); }
+.desktop-nav { background: var(--color-surface); border-right: 1px solid var(--color-border); padding: 1.25rem .75rem; }
+nav { display: grid; gap: .35rem; }
+nav a { align-items: center; border-radius: .6rem; color: var(--color-text-muted); display: flex; gap: .75rem; padding: .7rem .85rem; text-decoration: none; }
+nav a:hover { background: var(--color-background); color: var(--color-text); }
+nav a.active { background: var(--color-primary-container); color: var(--color-primary-dark); font-weight: 700; }
+.page-content { margin: 0 auto; max-width: 90rem; padding: clamp(1rem, 3vw, 2.5rem); width: 100%; }
+.sidebar { padding: 1rem; width: min(19rem, 85vw); }
+.sidebar__brand { margin-bottom: 1.5rem; }
+.notification { align-items: center; display: flex; justify-content: space-between; padding: .6rem clamp(1rem, 3vw, 2rem); }
+.notification--info { background: #dbe8ff; }.notification--success { background: #d1fadf; }.notification--warning { background: #fef0c7; }.notification--error { background: #fee4e2; }
+@media (min-width: 769px) { .topbar > button:first-child { display: none; } }
+@media (max-width: 768px) { .desktop-nav { display: none; }.layout { grid-template-columns: 1fr; }.identity { display: none; }.brand span:last-child { display: none; } }

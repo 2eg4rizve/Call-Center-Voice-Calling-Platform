@@ -1,0 +1,4 @@
+.chip { align-items: center; background: #f2f4f7; border-radius: 999px; color: #344054; display: inline-flex; font-size: .75rem; font-weight: 700; gap: .4rem; padding: .25rem .6rem; white-space: nowrap; }
+.dot { background: currentColor; border-radius: 50%; height: .45rem; width: .45rem; }
+.chip--positive { background: #d1fadf; color: #05603a; }.chip--info { background: #dbe8ff; color: #1849a9; }
+.chip--warning { background: #fef0c7; color: #93370d; }.chip--negative { background: #fee4e2; color: #912018; }

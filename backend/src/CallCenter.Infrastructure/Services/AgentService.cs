@@ -21,7 +21,7 @@ internal sealed class AgentService(
     {
         var user = new ApplicationUser { UserName = request.Email, Email = request.Email, FullName = request.FullName, EmailConfirmed = true };
         var result = await users.CreateAsync(user, request.Password);
-        if (!result.Succeeded) throw new InvalidOperationException(string.Join("; ", result.Errors.Select(x => x.Description)));
+        if (!result.Succeeded) throw new ArgumentException(string.Join("; ", result.Errors.Select(x => x.Description)));
         await users.AddToRoleAsync(user, "Agent");
         var agent = new Agent { IdentityUserId = user.Id, DisplayName = request.DisplayName, Status = AgentStatus.Offline };
         db.Agents.Add(agent);

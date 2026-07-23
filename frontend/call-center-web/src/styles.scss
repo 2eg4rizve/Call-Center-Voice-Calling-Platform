@@ -1,0 +1,67 @@
+@use '@angular/material' as mat;
+
+:root {
+  @include mat.theme((
+    color: (
+      primary: mat.$azure-palette,
+      tertiary: mat.$cyan-palette,
+    ),
+    typography: Roboto,
+    density: 0,
+  ));
+
+  --color-primary: #155eef;
+  --color-primary-dark: #1849a9;
+  --color-primary-container: #dbe8ff;
+  --color-background: #f6f8fb;
+  --color-surface: #ffffff;
+  --color-border: #d9e0ea;
+  --color-text: #17202e;
+  --color-text-muted: #526071;
+  --status-available: #067647;
+  --status-busy: #b54708;
+  --status-offline: #667085;
+  --status-error: #b42318;
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  color-scheme: light;
+  font-family: Roboto, "Segoe UI", sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  background: var(--color-background);
+  color: var(--color-text);
+}
+
+body {
+  margin: 0;
+  min-width: 20rem;
+}
+
+button,
+a {
+  -webkit-tap-highlight-color: transparent;
+}
+
+:focus-visible {
+  outline: 3px solid #84adff;
+  outline-offset: 3px;
+}
+
+.visually-hidden {
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  height: 1px;
+  overflow: hidden;
+  position: absolute;
+  white-space: nowrap;
+  width: 1px;
+}

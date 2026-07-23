@@ -1,0 +1,12 @@
+<section class="state" [attr.aria-live]="state() === 'loading' ? 'polite' : 'assertive'" [attr.aria-busy]="state() === 'loading'">
+  @if (state() === 'loading') {
+    <mat-spinner diameter="36" aria-hidden="true" />
+  } @else {
+    <mat-icon class="state__icon" aria-hidden="true">{{ icon() }}</mat-icon>
+  }
+  <h2>{{ title() }}</h2>
+  @if (message()) { <p>{{ message() }}</p> }
+  @if (state() === 'error') {
+    <button matButton="filled" type="button" (click)="retry.emit()">{{ retryLabel() }}</button>
+  }
+</section>

@@ -1,0 +1,47 @@
+<mat-sidenav-container class="shell">
+  <mat-sidenav class="sidebar" [opened]="menuOpen()" (closedStart)="menuOpen.set(false)" mode="over">
+    <div class="sidebar__brand"><span class="brand-mark">CC</span> Call Center</div>
+    <nav aria-label="Primary navigation">
+      @for (item of navItems(); track item.path) {
+        <a [routerLink]="item.path" routerLinkActive="active" (click)="menuOpen.set(false)">
+          <mat-icon aria-hidden="true">{{ item.icon }}</mat-icon><span>{{ item.label }}</span>
+        </a>
+      }
+    </nav>
+  </mat-sidenav>
+
+  <mat-sidenav-content>
+    <mat-toolbar class="topbar">
+      <button matIconButton type="button" aria-label="Open navigation" (click)="menuOpen.set(true)">
+        <mat-icon>menu</mat-icon>
+      </button>
+      <a class="brand" [routerLink]="auth.landingPage()"><span class="brand-mark">CC</span><span>Call Center</span></a>
+      <span class="spacer"></span>
+      <div class="identity">
+        <strong>{{ auth.displayName() }}</strong>
+        <span>{{ auth.role() }}</span>
+      </div>
+      <button matButton type="button" (click)="logout()">Log out</button>
+    </mat-toolbar>
+
+    @if (notifications.current(); as notification) {
+      <div class="notification" [class]="'notification notification--' + notification.kind" role="status">
+        <span>{{ notification.message }}</span>
+        <button matButton type="button" (click)="notifications.dismiss()">Dismiss</button>
+      </div>
+    }
+
+    <div class="layout">
+      <aside class="desktop-nav">
+        <nav aria-label="Primary navigation">
+          @for (item of navItems(); track item.path) {
+            <a [routerLink]="item.path" routerLinkActive="active">
+              <mat-icon aria-hidden="true">{{ item.icon }}</mat-icon><span>{{ item.label }}</span>
+            </a>
+          }
+        </nav>
+      </aside>
+      <main class="page-content"><router-outlet /></main>
+    </div>
+  </mat-sidenav-content>
+</mat-sidenav-container>

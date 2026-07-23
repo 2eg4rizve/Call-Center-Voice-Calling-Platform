@@ -1,0 +1,4 @@
+.state { align-items: center; background: var(--color-surface); border: 1px dashed var(--color-border); border-radius: .875rem; display: flex; flex-direction: column; min-height: 14rem; justify-content: center; padding: 2rem; text-align: center; }
+.state__icon { color: var(--color-text-muted); font-size: 2.5rem; height: 2.5rem; width: 2.5rem; }
+h2 { font-size: 1.125rem; margin: .75rem 0 .25rem; }
+p { color: var(--color-text-muted); margin: 0 0 1rem; max-width: 32rem; }

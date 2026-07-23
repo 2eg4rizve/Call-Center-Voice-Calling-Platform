@@ -1,0 +1,14 @@
+.page {
+  max-width: 48rem;
+}
+
+mat-card {
+  background: var(--color-surface);
+}
+
+mat-card-content p {
+  color: var(--color-text-muted);
+  line-height: 1.6;
+}
+
+app-status-chip { display: inline-block; margin-bottom: .75rem; }
