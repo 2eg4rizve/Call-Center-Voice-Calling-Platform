@@ -1,0 +1,106 @@
+<app-page-header eyebrow="Supervisor" title="Customer administration" description="Look up customers by phone, create CRM records, and maintain customer details." />
+
+@if (message()) { <div class="form-message" [class.error]="!notFound()" role="alert">{{ message() }}</div> }
+
+<div class="layout">
+  <section class="main-column">
+    <mat-card appearance="outlined">
+      <mat-card-header><mat-card-title>Find a customer</mat-card-title></mat-card-header>
+      <mat-card-content>
+        <p class="supporting">Lookup exact phone number diye kaj kore. Country code-shoho number use korun.</p>
+        <form class="lookup" [formGroup]="lookupForm" (ngSubmit)="lookup()">
+          <mat-form-field appearance="outline">
+            <mat-label>Phone number</mat-label>
+            <input matInput formControlName="phoneNumber" placeholder="+8801712345678" autocomplete="tel" />
+            <mat-hint>8–15 digits; optional leading +</mat-hint>
+            @if (lookupForm.controls.phoneNumber.touched && lookupForm.controls.phoneNumber.hasError('required')) { <mat-error>Phone number required.</mat-error> }
+            @if (lookupForm.controls.phoneNumber.hasError('phoneNumber')) { <mat-error>Valid phone din, example: +8801712345678.</mat-error> }
+            @if (lookupForm.controls.phoneNumber.hasError('maxlength')) { <mat-error>Maximum 30 characters allowed.</mat-error> }
+            @if (lookupForm.controls.phoneNumber.hasError('server')) { <mat-error>{{ lookupForm.controls.phoneNumber.getError('server')[0] }}</mat-error> }
+          </mat-form-field>
+          <button matButton="filled" type="submit" [appPendingAction]="pending()">{{ pending() ? 'Searching…' : 'Search customer' }}</button>
+        </form>
+      </mat-card-content>
+    </mat-card>
+
+    @if (customer(); as item) {
+      <mat-card appearance="outlined">
+        <mat-card-header>
+          <div mat-card-avatar class="avatar">{{ item.name.charAt(0).toUpperCase() }}</div>
+          <mat-card-title>{{ item.name }}</mat-card-title>
+          <mat-card-subtitle>{{ item.customerReferenceNumber }}</mat-card-subtitle>
+        </mat-card-header>
+        <mat-card-content>
+          <dl class="customer-summary">
+            <div><dt>Status</dt><dd>{{ item.isKnownCustomer ? 'Known customer' : 'Unknown customer' }}</dd></div>
+            <div><dt>Phone</dt><dd>{{ customerPhone() || 'Not returned by API' }}</dd></div>
+            <div><dt>Email</dt><dd>{{ item.emailAddress || 'Not provided' }}</dd></div>
+            <div><dt>Category</dt><dd>{{ item.customerCategory || 'Not categorized' }}</dd></div>
+          </dl>
+          <div class="summary"><span>Recent interaction</span><p>{{ item.recentInteractionSummary || 'No recent interaction summary.' }}</p></div>
+        </mat-card-content>
+      </mat-card>
+    } @else if (notFound()) {
+      <mat-card appearance="outlined" class="empty-state">
+        <mat-card-title>Customer not found</mat-card-title>
+        <p>Ei number-er jonno notun customer record create korte paren.</p>
+      </mat-card>
+    }
+  </section>
+
+  <aside>
+    @if (customer(); as item) {
+      <mat-card appearance="outlined">
+        <mat-card-header><mat-card-title>Edit customer</mat-card-title><mat-card-subtitle>{{ item.customerReferenceNumber }}</mat-card-subtitle></mat-card-header>
+        <mat-card-content>
+          @if (customerPhone()) { <div class="read-only"><span>Phone number</span><strong>{{ customerPhone() }}</strong><small>API phone update support kore na.</small></div> }
+          <form [formGroup]="editForm" (ngSubmit)="update()">
+            <ng-container *ngTemplateOutlet="customerFields; context: { form: editForm }" />
+            <button matButton="filled" type="submit" [appPendingAction]="pending()">{{ pending() ? 'Saving…' : 'Save changes' }}</button>
+          </form>
+        </mat-card-content>
+      </mat-card>
+    } @else {
+      <mat-card appearance="outlined">
+        <mat-card-header><mat-card-title>Create customer</mat-card-title></mat-card-header>
+        <mat-card-content>
+          <p class="supporting">Name ar phone required. Baki information optional.</p>
+          <form [formGroup]="createForm" (ngSubmit)="create()">
+            <mat-form-field appearance="outline">
+              <mat-label>Phone number</mat-label><input matInput formControlName="phoneNumber" placeholder="+8801712345678" />
+              @if (createForm.controls.phoneNumber.touched && createForm.controls.phoneNumber.hasError('required')) { <mat-error>Phone number required.</mat-error> }
+              @if (createForm.controls.phoneNumber.hasError('phoneNumber')) { <mat-error>Valid phone din, example: +8801712345678.</mat-error> }
+              @if (createForm.controls.phoneNumber.hasError('maxlength')) { <mat-error>Maximum 30 characters allowed.</mat-error> }
+              @if (createForm.controls.phoneNumber.hasError('server')) { <mat-error>{{ createForm.controls.phoneNumber.getError('server')[0] }}</mat-error> }
+            </mat-form-field>
+            <ng-container *ngTemplateOutlet="customerFields; context: { form: createForm }" />
+            <button matButton="filled" type="submit" [appPendingAction]="pending()">{{ pending() ? 'Creating…' : 'Create customer' }}</button>
+          </form>
+        </mat-card-content>
+      </mat-card>
+    }
+  </aside>
+</div>
+
+<ng-template #customerFields let-form="form">
+  <div [formGroup]="form" class="fields">
+    <mat-form-field appearance="outline"><mat-label>Name</mat-label><input matInput formControlName="name" />
+      @if (form.controls.name.touched && form.controls.name.hasError('required')) { <mat-error>Customer name required.</mat-error> }
+      @if (form.controls.name.hasError('maxlength')) { <mat-error>Maximum 200 characters allowed.</mat-error> }
+      @if (form.controls.name.hasError('server')) { <mat-error>{{ form.controls.name.getError('server')[0] }}</mat-error> }
+    </mat-form-field>
+    <mat-form-field appearance="outline"><mat-label>Email address</mat-label><input matInput type="email" formControlName="emailAddress" />
+      @if (form.controls.emailAddress.hasError('email')) { <mat-error>Valid email din, example: customer&#64;example.com.</mat-error> }
+      @if (form.controls.emailAddress.hasError('maxlength')) { <mat-error>Maximum 256 characters allowed.</mat-error> }
+      @if (form.controls.emailAddress.hasError('server')) { <mat-error>{{ form.controls.emailAddress.getError('server')[0] }}</mat-error> }
+    </mat-form-field>
+    <mat-form-field appearance="outline"><mat-label>Category</mat-label><input matInput formControlName="customerCategory" placeholder="Regular, Priority…" />
+      @if (form.controls.customerCategory.hasError('maxlength')) { <mat-error>Maximum 100 characters allowed.</mat-error> }
+      @if (form.controls.customerCategory.hasError('server')) { <mat-error>{{ form.controls.customerCategory.getError('server')[0] }}</mat-error> }
+    </mat-form-field>
+    <mat-form-field appearance="outline"><mat-label>Recent interaction summary</mat-label><textarea matInput formControlName="recentInteractionSummary" rows="5"></textarea><mat-hint align="end">{{ form.controls.recentInteractionSummary.value.length }}/1000</mat-hint>
+      @if (form.controls.recentInteractionSummary.hasError('maxlength')) { <mat-error>Maximum 1000 characters allowed.</mat-error> }
+      @if (form.controls.recentInteractionSummary.hasError('server')) { <mat-error>{{ form.controls.recentInteractionSummary.getError('server')[0] }}</mat-error> }
+    </mat-form-field>
+  </div>
+</ng-template>

@@ -1,0 +1,56 @@
+<app-page-header eyebrow="Supervisor" title="Operations dashboard" description="Monitor live workload, Agent availability, and inbound call assignment." />
+
+@if (loading() && !snapshot()) { <app-feedback-state state="loading" title="Loading operations" /> }
+@else if (loadError() && !snapshot()) { <app-feedback-state state="error" title="Dashboard unavailable" message="Metrics, Agents, ba call data load hoyni." (retry)="retry()" /> }
+@else if (snapshot(); as data) {
+  @if (loadError()) { <div class="refresh-error" role="alert">Latest refresh fail koreche. Last successful data dekhano hocche. <button matButton type="button" (click)="retry()">Retry now</button></div> }
+  <section class="metrics" aria-label="Operational metrics">
+    <mat-card appearance="outlined"><span>Total Agents</span><strong>{{ data.metrics.totalAgents }}</strong><small>{{ data.metrics.availableAgents }} available · {{ data.metrics.busyAgents }} busy</small></mat-card>
+    <mat-card appearance="outlined"><span>Waiting Calls</span><strong>{{ data.metrics.waitingCalls }}</strong><small>{{ data.metrics.assignedCalls }} assigned</small></mat-card>
+    <mat-card appearance="outlined"><span>Active Calls</span><strong>{{ data.metrics.activeCalls }}</strong><small>Live workload</small></mat-card>
+    <mat-card appearance="outlined"><span>Completed Today</span><strong>{{ data.metrics.completedCallsToday }}</strong><small>Avg {{ data.metrics.averageCompletedCallDurationSeconds | duration }}</small></mat-card>
+  </section>
+
+  <div class="operations-layout">
+    <div class="operations">
+      <section><div class="section-heading"><div><h2>Waiting calls</h2><p>Calls waiting for an eligible available Agent.</p></div><span class="count">{{ data.calls.waitingCalls.length }}</span></div>
+        @if (!data.calls.waitingCalls.length) { <app-feedback-state state="empty" title="No waiting calls" message="The waiting queue is clear." /> }
+        @else { <app-responsive-table label="Waiting calls"><table><thead><tr><th>Reference</th><th>Caller</th><th>Queue</th><th>Waiting since</th><th></th></tr></thead><tbody>
+          @for (call of data.calls.waitingCalls; track call.id) { <tr><td><strong>{{ call.callReferenceNumber }}</strong></td><td>{{ call.customer?.name || 'Unknown caller' }}</td><td>{{ call.callQueueName }}</td><td>{{ call.createdAtUtc | localDateTime }}</td><td><button matButton="filled" type="button" [appPendingAction]="assigningCallId() === call.id" [disabled]="!!assigningCallId()" (click)="assign(call)">{{ assigningCallId() === call.id ? 'Assigning…' : 'Assign' }}</button></td></tr> }
+        </tbody></table></app-responsive-table> }
+      </section>
+
+      <section><div class="section-heading"><div><h2>Assigned & active calls</h2><p>Current operational workload across Agents.</p></div><span class="count">{{ data.calls.activeCalls.length }}</span></div>
+        @if (!data.calls.activeCalls.length) { <app-feedback-state state="empty" title="No active workload" message="No calls are assigned or active." /> }
+        @else { <app-responsive-table label="Assigned and active calls"><table><thead><tr><th>Reference</th><th>Status</th><th>Agent</th><th>Queue</th><th>Accepted</th></tr></thead><tbody>
+          @for (call of data.calls.activeCalls; track call.id) { <tr><td><strong>{{ call.callReferenceNumber }}</strong></td><td><app-status-chip [status]="call.status" /></td><td>{{ call.assignedAgentName || 'Unassigned' }}</td><td>{{ call.callQueueName }}</td><td>{{ call.acceptedAtUtc | localDateTime }}</td></tr> }
+        </tbody></table></app-responsive-table> }
+      </section>
+
+      <section><div class="section-heading"><div><h2>Agent availability</h2><p>Live status and current call assignment.</p></div></div>
+        <app-responsive-table label="Agent availability"><table><thead><tr><th>Agent</th><th>Status</th><th>Last available</th><th>Current call</th></tr></thead><tbody>
+          @for (agent of data.agents.agents; track agent.id) { <tr><td><strong>{{ agent.displayName }}</strong></td><td><app-status-chip [status]="agent.status" /></td><td>{{ agent.lastAvailableAtUtc | localDateTime }}</td><td>{{ agent.currentCallReference || '—' }}</td></tr> }
+          @empty { <tr><td colspan="4">No Agents found.</td></tr> }
+        </tbody></table></app-responsive-table>
+      </section>
+    </div>
+
+    <aside><mat-card appearance="outlined"><mat-card-header><mat-card-title>Simulate inbound call</mat-card-title><mat-card-subtitle>Create a waiting call for an active queue.</mat-card-subtitle></mat-card-header><mat-card-content>
+      @if (formError()) { <div class="form-error" role="alert">{{ formError() }}</div> }
+      <form [formGroup]="callForm" (ngSubmit)="createCall()">
+        <mat-radio-group formControlName="mode" aria-label="Caller type"><mat-radio-button value="known">Known customer</mat-radio-button><mat-radio-button value="unknown">Unknown caller</mat-radio-button></mat-radio-group>
+        <p class="mode-help">{{ callForm.controls.mode.value === 'known' ? 'Phone diye exact customer lookup kore customer ID submit hobe.' : 'Caller phone submit hobe; customer ID submit hobe na.' }}</p>
+        <mat-form-field appearance="outline"><mat-label>{{ callForm.controls.mode.value === 'known' ? 'Customer phone' : 'Caller phone' }}</mat-label><input matInput formControlName="phoneNumber" placeholder="+8801712345678" />
+          @if (callForm.controls.phoneNumber.touched && callForm.controls.phoneNumber.hasError('required')) { <mat-error>Phone number required.</mat-error> }
+          @if (callForm.controls.phoneNumber.hasError('phoneNumber')) { <mat-error>Valid phone din, example: +8801712345678.</mat-error> }
+          @if (callForm.controls.phoneNumber.hasError('maxlength')) { <mat-error>Maximum 30 characters allowed.</mat-error> }
+        </mat-form-field>
+        <mat-form-field appearance="outline"><mat-label>Active queue</mat-label><mat-select formControlName="callQueueId">@for (queue of queues(); track queue.id) { <mat-option [value]="queue.id">{{ queue.name }}</mat-option> }</mat-select>
+          @if (callForm.controls.callQueueId.touched && callForm.controls.callQueueId.hasError('required')) { <mat-error>Active queue selection required.</mat-error> }
+        </mat-form-field>
+        <button matButton="filled" type="submit" [appPendingAction]="pending()">{{ pending() ? 'Creating…' : 'Create inbound call' }}</button>
+      </form>
+      @if (createdCall(); as call) { <div class="created" role="status"><strong>{{ call.callReferenceNumber }}</strong><span>Created in {{ call.callQueueName }}</span><app-status-chip [status]="call.status" /></div> }
+    </mat-card-content></mat-card></aside>
+  </div>
+}

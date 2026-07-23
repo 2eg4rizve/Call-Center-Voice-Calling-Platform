@@ -22,14 +22,42 @@
   --status-busy: #b54708;
   --status-offline: #667085;
   --status-error: #b42318;
+  --status-positive-bg: #d1fadf;
+  --status-positive-text: #05603a;
+  --status-info-bg: #dbe8ff;
+  --status-info-text: #1849a9;
+  --status-warning-bg: #fef0c7;
+  --status-warning-text: #93370d;
+  --status-negative-bg: #fee4e2;
+  --status-negative-text: #912018;
+  --status-neutral-bg: #f2f4f7;
+  --status-neutral-text: #344054;
   --space-1: 0.25rem;
   --space-2: 0.5rem;
   --space-3: 0.75rem;
   --space-4: 1rem;
   --space-6: 1.5rem;
   --space-8: 2rem;
+  --font-family-sans: Roboto, "Segoe UI", sans-serif;
+  --font-size-xs: 0.75rem;
+  --font-size-sm: 0.875rem;
+  --font-size-md: 1rem;
+  --font-size-lg: 1.25rem;
+  --font-size-xl: 1.5rem;
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-bold: 700;
+  --line-height-tight: 1.25;
+  --line-height-normal: 1.5;
+  --elevation-1: 0 1px 2px rgb(16 24 40 / 8%);
+  --elevation-2: 0 4px 12px rgb(16 24 40 / 10%);
+  --elevation-3: 0 12px 28px rgb(16 24 40 / 16%);
+  --breakpoint-sm: 36rem;
+  --breakpoint-md: 48rem;
+  --breakpoint-lg: 64rem;
+  --breakpoint-xl: 80rem;
   color-scheme: light;
-  font-family: Roboto, "Segoe UI", sans-serif;
+  font-family: var(--font-family-sans);
 }
 
 * {
@@ -54,6 +82,13 @@ a {
 :focus-visible {
   outline: 3px solid #84adff;
   outline-offset: 3px;
+}
+
+input:focus-visible,
+textarea:focus-visible,
+[contenteditable='true']:focus-visible {
+  outline: 3px solid #155eef !important;
+  outline-offset: 2px;
 }
 
 .visually-hidden {

@@ -1,0 +1,54 @@
+<app-page-header eyebrow="Supervisor" title="Queue administration" description="Create, edit, and deactivate active call queues." />
+
+<div class="limitation" role="note"><strong>Active queues only.</strong> Backend inactive queue list ba reactivation endpoint dey na. Deactivate korle queue-ti ei UI theke ar restore kora jabe na.</div>
+@if (formError()) { <div class="form-error" role="alert">{{ formError() }}</div> }
+
+<div class="layout">
+  <section>
+    @if (loading()) { <app-feedback-state state="loading" title="Loading queues" /> }
+    @else if (loadError()) { <app-feedback-state state="error" title="Queues unavailable" message="API connection check kore abar try korun." (retry)="load()" /> }
+    @else if (!queues().length) { <app-feedback-state state="empty" title="No active queues" message="Create form diye prothom call queue add korun." /> }
+    @else {
+      <app-responsive-table label="Active call queues">
+        <table><thead><tr><th>Queue</th><th>Description</th><th>Status</th><th><span class="sr-only">Action</span></th></tr></thead><tbody>
+          @for (queue of queues(); track queue.id) {
+            <tr><td><strong>{{ queue.name }}</strong></td><td>{{ queue.description || 'No description' }}</td><td><app-status-chip [status]="queue.isActive ? 'Active' : 'Inactive'" /></td><td><button matButton type="button" (click)="choose(queue)">Manage</button></td></tr>
+          }
+        </tbody></table>
+      </app-responsive-table>
+    }
+  </section>
+
+  <aside>
+    @if (selected(); as queue) {
+      <mat-card appearance="outlined"><mat-card-header><mat-card-title>Edit {{ queue.name }}</mat-card-title><mat-card-subtitle>Update details or deactivate this queue.</mat-card-subtitle></mat-card-header><mat-card-content>
+        <form [formGroup]="editForm" (ngSubmit)="update()">
+          <ng-container [ngTemplateOutlet]="queueFields" [ngTemplateOutletContext]="{ form: editForm }" />
+          <div class="actions"><button matButton="filled" type="submit" [appPendingAction]="pending()">{{ pending() ? 'Saving…' : 'Save changes' }}</button><button matButton type="button" (click)="cancelEdit()">Cancel</button></div>
+        </form>
+        <div class="danger-zone"><strong>Danger zone</strong><p>Deactivate korle active-only list theke queue remove hoye jabe.</p><button matButton type="button" class="danger" [appPendingAction]="pending()" (click)="deactivate()">Deactivate queue</button></div>
+      </mat-card-content></mat-card>
+    } @else {
+      <mat-card appearance="outlined"><mat-card-header><mat-card-title>Create queue</mat-card-title><mat-card-subtitle>Name required; description optional.</mat-card-subtitle></mat-card-header><mat-card-content>
+        <form [formGroup]="createForm" (ngSubmit)="create()">
+          <ng-container [ngTemplateOutlet]="queueFields" [ngTemplateOutletContext]="{ form: createForm }" />
+          <button matButton="filled" type="submit" [appPendingAction]="pending()">{{ pending() ? 'Creating…' : 'Create queue' }}</button>
+        </form>
+      </mat-card-content></mat-card>
+    }
+  </aside>
+</div>
+
+<ng-template #queueFields let-form="form">
+  <div class="fields" [formGroup]="form">
+    <mat-form-field appearance="outline"><mat-label>Queue name</mat-label><input matInput formControlName="name" />
+      @if (form.controls.name.touched && form.controls.name.hasError('required')) { <mat-error>Queue name required.</mat-error> }
+      @if (form.controls.name.hasError('maxlength')) { <mat-error>Maximum 150 characters allowed.</mat-error> }
+      @if (form.controls.name.hasError('server')) { <mat-error>{{ form.controls.name.getError('server')[0] }}</mat-error> }
+    </mat-form-field>
+    <mat-form-field appearance="outline"><mat-label>Description</mat-label><textarea matInput rows="4" formControlName="description"></textarea><mat-hint align="end">{{ form.controls.description.value.length }}/500</mat-hint>
+      @if (form.controls.description.hasError('maxlength')) { <mat-error>Maximum 500 characters allowed.</mat-error> }
+      @if (form.controls.description.hasError('server')) { <mat-error>{{ form.controls.description.getError('server')[0] }}</mat-error> }
+    </mat-form-field>
+  </div>
+</ng-template>

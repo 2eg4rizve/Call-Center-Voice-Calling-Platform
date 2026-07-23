@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
+import { A11yModule } from '@angular/cdk/a11y';
 
 export interface ConfirmationDialogData {
   title: string;
@@ -12,12 +13,12 @@ export interface ConfirmationDialogData {
 
 @Component({
   selector: 'app-confirmation-dialog',
-  imports: [MatButtonModule, MatDialogModule],
+  imports: [A11yModule, MatButtonModule, MatDialogModule],
   template: `
     <h2 mat-dialog-title>{{ data.title }}</h2>
     <mat-dialog-content><p>{{ data.message }}</p></mat-dialog-content>
     <mat-dialog-actions align="end">
-      <button matButton type="button" [mat-dialog-close]="false">{{ data.cancelLabel ?? 'Cancel' }}</button>
+      <button matButton type="button" cdkFocusInitial [mat-dialog-close]="false">{{ data.cancelLabel ?? 'Cancel' }}</button>
       <button matButton="filled" type="button" [class.destructive]="data.destructive" (click)="confirm()">
         {{ data.confirmLabel ?? 'Confirm' }}
       </button>
