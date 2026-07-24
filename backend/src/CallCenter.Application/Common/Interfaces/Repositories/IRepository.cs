@@ -1,17 +1,10 @@
-using System.Linq.Expressions;
 using CallCenter.Domain.Common;
 
 namespace CallCenter.Application.Common.Interfaces.Repositories;
 
 public interface IRepository<TEntity> where TEntity : BaseEntity
 {
-    IQueryable<TEntity> Query();
-
     Task<TEntity?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
-
-    Task<TEntity?> FirstOrDefaultAsync(
-        Expression<Func<TEntity, bool>> predicate,
-        CancellationToken cancellationToken = default);
 
     Task AddAsync(TEntity entity, CancellationToken cancellationToken = default);
 

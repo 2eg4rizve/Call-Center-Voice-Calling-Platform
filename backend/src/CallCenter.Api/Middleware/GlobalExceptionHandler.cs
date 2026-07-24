@@ -2,6 +2,7 @@ using Microsoft.Data.SqlClient;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using CallCenter.Application.Common.Exceptions;
 
 namespace CallCenter.Api.Middleware;
 
@@ -26,6 +27,7 @@ internal sealed class GlobalExceptionHandler(
             ArgumentException => new ApiError(StatusCodes.Status400BadRequest, "invalid_request", "Invalid request.", exception.Message),
             UnauthorizedAccessException => new ApiError(StatusCodes.Status401Unauthorized, "unauthorized", "Unauthorized.", exception.Message),
             KeyNotFoundException => new ApiError(StatusCodes.Status404NotFound, "not_found", "Resource not found.", exception.Message),
+            DataConcurrencyException => new ApiError(StatusCodes.Status409Conflict, "concurrency_conflict", "Workflow conflict.", "The resource changed while the request was being processed. Refresh and try again."),
             DbUpdateConcurrencyException => new ApiError(StatusCodes.Status409Conflict, "concurrency_conflict", "Workflow conflict.", "The resource changed while the request was being processed. Refresh and try again."),
             DbUpdateException => new ApiError(StatusCodes.Status409Conflict, "database_conflict", "Database conflict.", "The requested change conflicts with the current data. Refresh and try again."),
             InvalidOperationException => new ApiError(StatusCodes.Status409Conflict, "workflow_conflict", "Workflow conflict.", exception.Message),

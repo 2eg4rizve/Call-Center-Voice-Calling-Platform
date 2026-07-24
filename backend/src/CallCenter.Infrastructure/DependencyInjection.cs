@@ -3,7 +3,8 @@ using CallCenter.Infrastructure.Persistence;
 using CallCenter.Infrastructure.Persistence.Repositories;
 using CallCenter.Application.Common.Interfaces.Services;
 using CallCenter.Infrastructure.Identity;
-using CallCenter.Infrastructure.Services;
+using CallCenter.Infrastructure.Integrations.Crm;
+using CallCenter.Infrastructure.Integrations.Telephony;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -56,17 +57,18 @@ public static class DependencyInjection
             .AddRoles<IdentityRole>()
             .AddEntityFrameworkStores<CallCenterDbContext>();
 
-        services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
+        services.AddScoped<IAgentRepository, AgentRepository>();
+        services.AddScoped<IAgentQueueRepository, AgentQueueRepository>();
+        services.AddScoped<IIdentityRepository, IdentityRepository>();
+        services.AddScoped<ICallRepository, CallRepository>();
+        services.AddScoped<ICallEventRepository, CallEventRepository>();
+        services.AddScoped<ICallQueueRepository, CallQueueRepository>();
+        services.AddScoped<ICustomerRepository, CustomerRepository>();
+        services.AddScoped<IDashboardRepository, DashboardRepository>();
         services.AddScoped<IUnitOfWork, UnitOfWork>();
-        services.AddScoped<IAuthService, AuthService>();
-        services.AddScoped<IAgentService, AgentService>();
-        services.AddScoped<ICallQueueService, CallQueueService>();
-        services.AddScoped<ICustomerService, CustomerService>();
+        services.AddScoped<IAccessTokenProvider, JwtAccessTokenProvider>();
         services.AddScoped<ITelephonyProvider, MockTelephonyProvider>();
         services.AddScoped<ICrmSimulationService, CrmSimulationService>();
-        services.AddScoped<ICallAssignmentService, CallAssignmentService>();
-        services.AddScoped<ICallService, CallService>();
-        services.AddScoped<IDashboardService, DashboardService>();
 
         return services;
     }

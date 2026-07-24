@@ -2,7 +2,7 @@ using CallCenter.Application.Common.Interfaces.Services;
 using CallCenter.Domain.Entities;
 using CallCenter.Domain.Enums;
 
-namespace CallCenter.Infrastructure.Services;
+namespace CallCenter.Infrastructure.Integrations.Crm;
 
 internal sealed class CrmSimulationService : ICrmSimulationService
 {

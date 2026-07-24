@@ -1,21 +1,27 @@
 using AutoMapper;
+using CallCenter.Application.Common.Interfaces.Repositories;
 using CallCenter.Application.Common.Interfaces.Services;
 using CallCenter.Application.Dtos.RequestDtos;
 using CallCenter.Application.Dtos.ResponseDtos;
 using CallCenter.Domain.Entities;
-using CallCenter.Infrastructure.Persistence;
-using Microsoft.EntityFrameworkCore;
 
-namespace CallCenter.Infrastructure.Services;
+namespace CallCenter.Application.Services;
 
-internal sealed class CustomerService(CallCenterDbContext db, IMapper mapper) : ICustomerService
+internal sealed class CustomerService(
+    ICustomerRepository customerRepository,
+    IUnitOfWork unitOfWork,
+    IMapper mapper) : ICustomerService
 {
     public async Task<CustomerResponseDto> CreateAsync(
         CreateCustomerRequestDto request,
         CancellationToken cancellationToken = default)
     {
         var phoneNumber = request.PhoneNumber.Trim();
-        if (await db.Customers.AnyAsync(customer => customer.PhoneNumber == phoneNumber, cancellationToken))
+        var existingCustomer = await customerRepository.GetByPhoneNumberAsync(
+            phoneNumber,
+            cancellationToken);
+
+        if (existingCustomer is not null)
             throw new ArgumentException("A customer with this phone number already exists.");
 
         var customer = new Customer
@@ -28,8 +34,9 @@ internal sealed class CustomerService(CallCenterDbContext db, IMapper mapper) : 
             RecentInteractionSummary = NormalizeOptional(request.RecentInteractionSummary)
         };
 
-        db.Customers.Add(customer);
-        await db.SaveChangesAsync(cancellationToken);
+        await customerRepository.AddAsync(customer, cancellationToken);
+        await unitOfWork.SaveChangesAsync(cancellationToken);
+
         return mapper.Map<CustomerResponseDto>(customer);
     }
 
@@ -38,7 +45,7 @@ internal sealed class CustomerService(CallCenterDbContext db, IMapper mapper) : 
         UpdateCustomerRequestDto request,
         CancellationToken cancellationToken = default)
     {
-        var customer = await db.Customers.SingleOrDefaultAsync(x => x.Id == customerId, cancellationToken)
+        var customer = await customerRepository.GetByIdAsync(customerId, cancellationToken)
             ?? throw new KeyNotFoundException("Customer was not found.");
 
         customer.Name = request.Name.Trim();
@@ -46,7 +53,10 @@ internal sealed class CustomerService(CallCenterDbContext db, IMapper mapper) : 
         customer.CustomerCategory = NormalizeOptional(request.CustomerCategory);
         customer.RecentInteractionSummary = NormalizeOptional(request.RecentInteractionSummary);
         customer.UpdatedAtUtc = DateTimeOffset.UtcNow;
-        await db.SaveChangesAsync(cancellationToken);
+
+        customerRepository.Update(customer);
+        await unitOfWork.SaveChangesAsync(cancellationToken);
+
         return mapper.Map<CustomerResponseDto>(customer);
     }
 
@@ -54,9 +64,9 @@ internal sealed class CustomerService(CallCenterDbContext db, IMapper mapper) : 
         Guid customerId,
         CancellationToken cancellationToken = default)
     {
-        var customer = await db.Customers.AsNoTracking()
-            .SingleOrDefaultAsync(x => x.Id == customerId, cancellationToken)
+        var customer = await customerRepository.GetByIdAsync(customerId, cancellationToken)
             ?? throw new KeyNotFoundException("Customer was not found.");
+
         return mapper.Map<CustomerResponseDto>(customer);
     }
 
@@ -64,10 +74,11 @@ internal sealed class CustomerService(CallCenterDbContext db, IMapper mapper) : 
         CustomerLookupRequestDto request,
         CancellationToken cancellationToken = default)
     {
-        var phoneNumber = request.PhoneNumber.Trim();
-        var customer = await db.Customers.AsNoTracking()
-            .SingleOrDefaultAsync(x => x.PhoneNumber == phoneNumber, cancellationToken)
+        var customer = await customerRepository.GetByPhoneNumberAsync(
+                request.PhoneNumber.Trim(),
+                cancellationToken)
             ?? throw new KeyNotFoundException("Customer was not found.");
+
         return mapper.Map<CustomerResponseDto>(customer);
     }
 

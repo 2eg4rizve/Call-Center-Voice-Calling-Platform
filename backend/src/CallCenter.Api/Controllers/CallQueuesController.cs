@@ -29,7 +29,7 @@ public sealed class CallQueuesController(ICallQueueService callQueueService) : C
         CancellationToken cancellationToken)
     {
         var response = await callQueueService.CreateAsync(request, cancellationToken);
-        return StatusCode(StatusCodes.Status201Created, response);
+        return CreatedAtAction(nameof(GetActive), response);
     }
 
     [HttpPut("{callQueueId:guid}")]

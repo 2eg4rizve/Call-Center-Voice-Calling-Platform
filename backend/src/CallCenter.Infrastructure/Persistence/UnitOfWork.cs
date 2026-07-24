@@ -1,6 +1,5 @@
 using CallCenter.Application.Common.Interfaces.Repositories;
-using CallCenter.Domain.Common;
-using CallCenter.Infrastructure.Persistence.Repositories;
+using CallCenter.Application.Common.Exceptions;
 using Microsoft.EntityFrameworkCore;
 using System.Data;
 
@@ -8,25 +7,19 @@ namespace CallCenter.Infrastructure.Persistence;
 
 internal sealed class UnitOfWork(CallCenterDbContext dbContext) : IUnitOfWork
 {
-    private readonly Dictionary<Type, object> _repositories = [];
-
-    public IRepository<TEntity> GetRepository<TEntity>() where TEntity : BaseEntity
+    public async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
-        var entityType = typeof(TEntity);
-
-        if (_repositories.TryGetValue(entityType, out var repository))
+        try
         {
-            return (IRepository<TEntity>)repository;
+            return await dbContext.SaveChangesAsync(cancellationToken);
         }
-
-        var newRepository = new Repository<TEntity>(dbContext);
-        _repositories[entityType] = newRepository;
-
-        return newRepository;
+        catch (DbUpdateConcurrencyException exception)
+        {
+            throw new DataConcurrencyException(
+                "The database record changed while it was being updated.",
+                exception);
+        }
     }
-
-    public Task<int> SaveChangesAsync(CancellationToken cancellationToken = default) =>
-        dbContext.SaveChangesAsync(cancellationToken);
 
     public async Task<ITransaction> BeginTransactionAsync(
         IsolationLevel isolationLevel = IsolationLevel.ReadCommitted,
@@ -37,5 +30,23 @@ internal sealed class UnitOfWork(CallCenterDbContext dbContext) : IUnitOfWork
             cancellationToken);
 
         return new EfTransaction(transaction);
+    }
+
+    public async Task<TResult> ExecuteInTransactionAsync<TResult>(
+        Func<CancellationToken, Task<TResult>> operation,
+        IsolationLevel isolationLevel = IsolationLevel.ReadCommitted,
+        CancellationToken cancellationToken = default)
+    {
+        var strategy = dbContext.Database.CreateExecutionStrategy();
+
+        return await strategy.ExecuteAsync(async () =>
+        {
+            await using var transaction = await dbContext.Database.BeginTransactionAsync(
+                isolationLevel,
+                cancellationToken);
+            var result = await operation(cancellationToken);
+            await transaction.CommitAsync(cancellationToken);
+            return result;
+        });
     }
 }

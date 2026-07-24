@@ -39,7 +39,10 @@ public sealed class CustomersController(ICustomerService customerService) : Cont
         CancellationToken cancellationToken)
     {
         var response = await customerService.CreateAsync(request, cancellationToken);
-        return StatusCode(StatusCodes.Status201Created, response);
+        return CreatedAtAction(
+            nameof(GetById),
+            new { customerId = response.Id },
+            response);
     }
 
     [HttpPut("{customerId:guid}")]
