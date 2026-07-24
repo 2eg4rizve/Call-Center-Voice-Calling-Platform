@@ -17,32 +17,36 @@ internal sealed class CallAssignmentService(CallCenterDbContext db, IMapper mapp
     {
         try
         {
-            await using var transaction = await db.Database.BeginTransactionAsync(
-                IsolationLevel.Serializable,
-                cancellationToken);
-
-            var call = await CallQuery()
-                .SingleOrDefaultAsync(x => x.Id == callId, cancellationToken)
-                ?? throw new KeyNotFoundException("Call was not found.");
-
-            if (call.Status != CallStatus.Waiting)
-                throw new InvalidOperationException("Only a waiting call can be assigned.");
-
-            var agent = await EligibleAgents(call.CallQueueId)
-                .OrderBy(x => x.LastAvailableAtUtc ?? DateTimeOffset.MinValue)
-                .ThenBy(x => x.Id)
-                .FirstOrDefaultAsync(cancellationToken);
-
-            if (agent is null)
+            var strategy = db.Database.CreateExecutionStrategy();
+            return await strategy.ExecuteAsync(async () =>
             {
-                await transaction.CommitAsync(cancellationToken);
-                return null;
-            }
+                await using var transaction = await db.Database.BeginTransactionAsync(
+                    IsolationLevel.Serializable,
+                    cancellationToken);
 
-            Assign(call, agent);
-            await db.SaveChangesAsync(cancellationToken);
-            await transaction.CommitAsync(cancellationToken);
-            return mapper.Map<CallResponseDto>(call);
+                var call = await CallQuery()
+                    .SingleOrDefaultAsync(x => x.Id == callId, cancellationToken)
+                    ?? throw new KeyNotFoundException("Call was not found.");
+
+                if (call.Status != CallStatus.Waiting)
+                    throw new InvalidOperationException("Only a waiting call can be assigned.");
+
+                var agent = await EligibleAgents(call.CallQueueId)
+                    .OrderBy(x => x.LastAvailableAtUtc ?? DateTimeOffset.MinValue)
+                    .ThenBy(x => x.Id)
+                    .FirstOrDefaultAsync(cancellationToken);
+
+                if (agent is null)
+                {
+                    await transaction.CommitAsync(cancellationToken);
+                    return null;
+                }
+
+                Assign(call, agent);
+                await db.SaveChangesAsync(cancellationToken);
+                await transaction.CommitAsync(cancellationToken);
+                return mapper.Map<CallResponseDto>(call);
+            });
         }
         catch (DbUpdateConcurrencyException exception)
         {
@@ -58,40 +62,44 @@ internal sealed class CallAssignmentService(CallCenterDbContext db, IMapper mapp
     {
         try
         {
-            await using var transaction = await db.Database.BeginTransactionAsync(
-                IsolationLevel.Serializable,
-                cancellationToken);
-
-            var agent = await db.Agents
-                .Include(x => x.AgentQueues)
-                .SingleOrDefaultAsync(x => x.Id == agentId, cancellationToken)
-                ?? throw new KeyNotFoundException("Agent was not found.");
-
-            if (agent.Status != AgentStatus.Available ||
-                await db.Calls.AnyAsync(x => x.AssignedAgentId == agentId &&
-                    (x.Status == CallStatus.Assigned || x.Status == CallStatus.Active), cancellationToken))
+            var strategy = db.Database.CreateExecutionStrategy();
+            return await strategy.ExecuteAsync(async () =>
             {
+                await using var transaction = await db.Database.BeginTransactionAsync(
+                    IsolationLevel.Serializable,
+                    cancellationToken);
+
+                var agent = await db.Agents
+                    .Include(x => x.AgentQueues)
+                    .SingleOrDefaultAsync(x => x.Id == agentId, cancellationToken)
+                    ?? throw new KeyNotFoundException("Agent was not found.");
+
+                if (agent.Status != AgentStatus.Available ||
+                    await db.Calls.AnyAsync(x => x.AssignedAgentId == agentId &&
+                        (x.Status == CallStatus.Assigned || x.Status == CallStatus.Active), cancellationToken))
+                {
+                    await transaction.CommitAsync(cancellationToken);
+                    return null;
+                }
+
+                var queueIds = agent.AgentQueues.Select(x => x.CallQueueId).ToArray();
+                var call = await CallQuery()
+                    .Where(x => x.Status == CallStatus.Waiting && queueIds.Contains(x.CallQueueId))
+                    .OrderBy(x => x.CreatedAtUtc)
+                    .ThenBy(x => x.Id)
+                    .FirstOrDefaultAsync(cancellationToken);
+
+                if (call is null)
+                {
+                    await transaction.CommitAsync(cancellationToken);
+                    return null;
+                }
+
+                Assign(call, agent);
+                await db.SaveChangesAsync(cancellationToken);
                 await transaction.CommitAsync(cancellationToken);
-                return null;
-            }
-
-            var queueIds = agent.AgentQueues.Select(x => x.CallQueueId).ToArray();
-            var call = await CallQuery()
-                .Where(x => x.Status == CallStatus.Waiting && queueIds.Contains(x.CallQueueId))
-                .OrderBy(x => x.CreatedAtUtc)
-                .ThenBy(x => x.Id)
-                .FirstOrDefaultAsync(cancellationToken);
-
-            if (call is null)
-            {
-                await transaction.CommitAsync(cancellationToken);
-                return null;
-            }
-
-            Assign(call, agent);
-            await db.SaveChangesAsync(cancellationToken);
-            await transaction.CommitAsync(cancellationToken);
-            return mapper.Map<CallResponseDto>(call);
+                return mapper.Map<CallResponseDto>(call);
+            });
         }
         catch (DbUpdateConcurrencyException exception)
         {

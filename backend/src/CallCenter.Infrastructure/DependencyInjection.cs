@@ -21,8 +21,28 @@ public static class DependencyInjection
             ?? throw new InvalidOperationException(
                 "Connection string 'CallCenterDatabase' is not configured.");
 
+        var commandTimeoutSeconds = int.TryParse(
+            configuration["Database:CommandTimeoutSeconds"], out var configuredCommandTimeout)
+            ? Math.Max(1, configuredCommandTimeout)
+            : 15;
+        var maxRetryCount = int.TryParse(
+            configuration["Database:MaxRetryCount"], out var configuredRetryCount)
+            ? Math.Max(0, configuredRetryCount)
+            : 2;
+        var maxRetryDelaySeconds = int.TryParse(
+            configuration["Database:MaxRetryDelaySeconds"], out var configuredRetryDelay)
+            ? Math.Max(1, configuredRetryDelay)
+            : 3;
+
         services.AddDbContext<CallCenterDbContext>(options =>
-            options.UseSqlServer(connectionString));
+            options.UseSqlServer(connectionString, sqlServerOptions =>
+            {
+                sqlServerOptions.CommandTimeout(commandTimeoutSeconds);
+                sqlServerOptions.EnableRetryOnFailure(
+                    maxRetryCount,
+                    TimeSpan.FromSeconds(maxRetryDelaySeconds),
+                    errorNumbersToAdd: null);
+            }));
 
         var jwtSection = configuration.GetSection(JwtOptions.SectionName);
         services.Configure<JwtOptions>(options =>

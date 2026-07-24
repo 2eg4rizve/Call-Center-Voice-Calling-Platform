@@ -7,7 +7,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatRadioModule } from '@angular/material/radio';
 import { MatSelectModule } from '@angular/material/select';
-import { catchError, distinctUntilChanged, EMPTY, exhaustMap, finalize, forkJoin, fromEvent, map, merge, NEVER, startWith, Subject, switchMap, timer } from 'rxjs';
+import { catchError, distinctUntilChanged, EMPTY, exhaustMap, filter, finalize, forkJoin, fromEvent, map, merge, NEVER, startWith, Subject, switchMap, tap, timer } from 'rxjs';
 import { CallQueueResponse } from '../../../core/api/models/queue.models';
 import { CallResponse } from '../../../core/api/models/call.models';
 import { AgentStatusSummaryResponse, DashboardMetricsResponse, OperationalCallsResponse } from '../../../core/api/models/dashboard.models';
@@ -39,6 +39,10 @@ export class SupervisorDashboard {
   private readonly callsApi = inject(CallsApiService); private readonly customersApi = inject(CustomersApiService);
   private readonly notify = inject(SnackbarNotificationService); private readonly destroyRef = inject(DestroyRef);
   private readonly refreshTrigger = new Subject<void>();
+  private readonly pollingIntervalMs = 5000;
+  private readonly maximumPollingDelayMs = 60000;
+  private pollingFailureCount = 0;
+  private nextAutomaticPollAt = 0;
 
   protected readonly snapshot = signal<DashboardSnapshot | null>(null); protected readonly queues = signal<CallQueueResponse[]>([]);
   protected readonly loading = signal(true); protected readonly loadError = signal(false); protected readonly pending = signal(false);
@@ -53,9 +57,15 @@ export class SupervisorDashboard {
   constructor() {
     this.queuesApi.listActive().pipe(takeUntilDestroyed()).subscribe({ next: (queues) => this.queues.set(queues), error: () => this.formError.set('Active queue load kora jayni.') });
     const visibility = fromEvent(document, 'visibilitychange').pipe(startWith(null), map(() => !document.hidden), distinctUntilChanged());
+    const automaticRefresh = timer(0, this.pollingIntervalMs).pipe(map(() => false));
+    const manualRefresh = this.refreshTrigger.pipe(map(() => true));
     visibility.pipe(
-      switchMap((visible) => visible ? merge(timer(0, 5000), this.refreshTrigger) : NEVER),
-      exhaustMap(() => this.fetchDashboard().pipe(catchError(() => { this.loadError.set(true); this.loading.set(false); return EMPTY; }))),
+      switchMap((visible) => visible ? merge(automaticRefresh, manualRefresh) : NEVER),
+      filter((manual) => manual || Date.now() >= this.nextAutomaticPollAt),
+      exhaustMap(() => this.fetchDashboard().pipe(
+        tap(() => this.resetPollingBackoff()),
+        catchError(() => { this.increasePollingBackoff(); this.loadError.set(true); this.loading.set(false); return EMPTY; }),
+      )),
       takeUntilDestroyed(),
     ).subscribe((snapshot) => { this.snapshot.set(snapshot); this.loadError.set(false); this.loading.set(false); });
   }
@@ -90,5 +100,7 @@ export class SupervisorDashboard {
     });
   }
 
+  private increasePollingBackoff(): void { this.pollingFailureCount += 1; const delay = Math.min(this.pollingIntervalMs * (2 ** this.pollingFailureCount), this.maximumPollingDelayMs); this.nextAutomaticPollAt = Date.now() + delay; }
+  private resetPollingBackoff(): void { this.pollingFailureCount = 0; this.nextAutomaticPollAt = 0; }
   private fetchDashboard() { return forkJoin({ metrics: this.dashboardApi.metrics(), agents: this.dashboardApi.agents(), calls: this.dashboardApi.calls() }); }
 }

@@ -84,6 +84,28 @@ describe('SupervisorDashboard', () => {
     expect(show).toHaveBeenCalledWith('Call state changed. Dashboard refresh kora hocche.'); expect(metrics).toHaveBeenCalledTimes(4);
   });
 
+  it('backs off dashboard polling after a failure and returns to polling after recovery', async () => {
+    let hidden = true;
+    const hiddenSpy = vi.spyOn(document, 'hidden', 'get').mockImplementation(() => hidden);
+    document.dispatchEvent(new Event('visibilitychange'));
+    vi.useFakeTimers();
+    try {
+      metrics.mockReturnValue(throwError(() => new Error('Database unavailable')));
+      const beforeFailure = metrics.mock.calls.length;
+      hidden = false; document.dispatchEvent(new Event('visibilitychange'));
+      await vi.advanceTimersByTimeAsync(0);
+      expect(metrics).toHaveBeenCalledTimes(beforeFailure + 1);
+
+      metrics.mockReturnValue(of(metricData));
+      await vi.advanceTimersByTimeAsync(5000);
+      expect(metrics).toHaveBeenCalledTimes(beforeFailure + 1);
+      await vi.advanceTimersByTimeAsync(5000);
+      expect(metrics).toHaveBeenCalledTimes(beforeFailure + 2);
+    } finally {
+      hiddenSpy.mockRestore(); vi.useRealTimers();
+    }
+  });
+
   it('pauses while hidden, refreshes immediately when visible, polls, and stops after destroy', async () => {
     let hidden = true;
     const hiddenSpy = vi.spyOn(document, 'hidden', 'get').mockImplementation(() => hidden);
