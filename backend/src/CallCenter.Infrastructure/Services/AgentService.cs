@@ -35,8 +35,6 @@ internal sealed class AgentService(
         agent.DisplayName = request.DisplayName;
         agent.UpdatedAtUtc = DateTimeOffset.UtcNow;
         await db.SaveChangesAsync(cancellationToken);
-        if (agent.Status == AgentStatus.Available)
-            await callAssignmentService.TryAssignNextWaitingCallToAgentAsync(agent.Id, cancellationToken);
         return mapper.Map<AgentResponseDto>(agent);
     }
 
@@ -61,6 +59,10 @@ internal sealed class AgentService(
         if (agent.Status == AgentStatus.Available) agent.LastAvailableAtUtc = DateTimeOffset.UtcNow;
         agent.UpdatedAtUtc = DateTimeOffset.UtcNow;
         await db.SaveChangesAsync(cancellationToken);
+
+        if (agent.Status == AgentStatus.Available)
+            await callAssignmentService.TryAssignNextWaitingCallToAgentAsync(agent.Id, cancellationToken);
+
         return mapper.Map<AgentResponseDto>(agent);
     }
 

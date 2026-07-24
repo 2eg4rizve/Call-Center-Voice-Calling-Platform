@@ -102,8 +102,10 @@ internal sealed class CallService(
         call.Status = CallStatus.Active;
         call.AcceptedAtUtc = now;
         call.UpdatedAtUtc = now;
-        call.CallEvents.Add(new CallEvent
+        db.CallEvents.Add(new CallEvent
         {
+            CallId = call.Id,
+            Call = call,
             EventType = CallEventType.Accepted,
             EventAtUtc = now,
             Details = "Call accepted by the assigned agent."
@@ -136,8 +138,10 @@ internal sealed class CallService(
         agent.Status = AgentStatus.Available;
         agent.LastAvailableAtUtc = now;
         agent.UpdatedAtUtc = now;
-        call.CallEvents.Add(new CallEvent
+        db.CallEvents.Add(new CallEvent
         {
+            CallId = call.Id,
+            Call = call,
             EventType = CallEventType.Completed,
             EventAtUtc = now,
             Details = $"Call completed with outcome {call.Outcome}."
