@@ -62,6 +62,8 @@ internal sealed class DashboardRepository(CallCenterDbContext dbContext) : IDash
         CancellationToken cancellationToken = default) =>
         await dbContext.Agents
             .AsNoTracking()
+            .Include(agent => agent.AgentQueues)
+            .ThenInclude(agentQueue => agentQueue.CallQueue)
             .Include(agent => agent.AssignedCalls)
             .OrderBy(agent => agent.DisplayName)
             .ToListAsync(cancellationToken);

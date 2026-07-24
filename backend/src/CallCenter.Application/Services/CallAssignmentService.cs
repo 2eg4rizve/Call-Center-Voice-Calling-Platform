@@ -46,6 +46,40 @@ internal sealed class CallAssignmentService(
         }
     }
 
+    public async Task<CallResponseDto> AssignCallToAgentAsync(
+        Guid callId,
+        Guid agentId,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            return await unitOfWork.ExecuteInTransactionAsync(async token =>
+            {
+                var call = await callRepository.GetByIdWithDetailsAsync(callId, token)
+                    ?? throw new KeyNotFoundException("Call was not found.");
+                if (call.Status != CallStatus.Waiting)
+                    throw new InvalidOperationException("Only a waiting call can be assigned.");
+
+                var agent = await agentRepository.GetByIdWithCallQueuesAsync(agentId, token)
+                    ?? throw new KeyNotFoundException("Agent was not found.");
+                if (agent.Status != AgentStatus.Available && agent.Status != AgentStatus.Busy)
+                    throw new InvalidOperationException(
+                        "Only an available or busy agent can receive an assigned call.");
+                if (!agent.AgentQueues.Any(membership => membership.CallQueueId == call.CallQueueId))
+                    throw new InvalidOperationException(
+                        "The selected agent does not belong to this call queue.");
+
+                await AssignAsync(call, agent, token);
+                await unitOfWork.SaveChangesAsync(token);
+                return mapper.Map<CallResponseDto>(call);
+            }, IsolationLevel.Serializable, cancellationToken);
+        }
+        catch (DataConcurrencyException exception)
+        {
+            throw AssignmentChanged(exception);
+        }
+    }
+
     public async Task<CallResponseDto?> TryAssignNextWaitingCallToAgentAsync(
         Guid agentId,
         CancellationToken cancellationToken = default)

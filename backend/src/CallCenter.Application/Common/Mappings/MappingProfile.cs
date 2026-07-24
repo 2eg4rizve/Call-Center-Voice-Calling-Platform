@@ -13,9 +13,13 @@ public sealed class MappingProfile : Profile
             .ForMember(destination => destination.CallQueueNames, options => options.MapFrom(source =>
                 source.AgentQueues.Select(agentQueue => agentQueue.CallQueue.Name)));
         CreateMap<Agent, AgentSummaryResponseDto>()
+            .ForMember(destination => destination.CallQueueNames, options => options.MapFrom(source =>
+                source.AgentQueues.Select(agentQueue => agentQueue.CallQueue.Name)))
             .ForMember(destination => destination.CurrentCallReference, options => options.MapFrom(source =>
                 source.AssignedCalls
                     .Where(call => call.Status == CallStatus.Assigned || call.Status == CallStatus.Active)
+                    .OrderBy(call => call.Status == CallStatus.Active ? 0 : 1)
+                    .ThenBy(call => call.AssignedAtUtc)
                     .Select(call => call.CallReferenceNumber)
                     .FirstOrDefault()));
         CreateMap<Customer, CustomerResponseDto>()

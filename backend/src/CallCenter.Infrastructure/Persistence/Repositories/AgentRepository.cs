@@ -37,6 +37,8 @@ internal sealed class AgentRepository : Repository<Agent>, IAgentRepository
         CancellationToken cancellationToken = default) =>
         await _dbContext.Agents
             .AsNoTracking()
+            .Include(agent => agent.AgentQueues)
+            .ThenInclude(agentQueue => agentQueue.CallQueue)
             .Include(agent => agent.AssignedCalls)
             .OrderBy(agent => agent.DisplayName)
             .ToListAsync(cancellationToken);

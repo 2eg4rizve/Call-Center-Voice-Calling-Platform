@@ -8,6 +8,11 @@ public interface ICallAssignmentService
         Guid callId,
         CancellationToken cancellationToken = default);
 
+    Task<CallResponseDto> AssignCallToAgentAsync(
+        Guid callId,
+        Guid agentId,
+        CancellationToken cancellationToken = default);
+
     Task<CallResponseDto?> TryAssignNextWaitingCallToAgentAsync(
         Guid agentId,
         CancellationToken cancellationToken = default);

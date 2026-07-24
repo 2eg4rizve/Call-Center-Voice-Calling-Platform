@@ -31,8 +31,29 @@ internal sealed class CallRepository : Repository<Call>, ICallRepository
             .Where(call =>
                 call.AssignedAgentId == agentId &&
                 (call.Status == CallStatus.Assigned || call.Status == CallStatus.Active))
-            .OrderByDescending(call => call.AssignedAtUtc)
+            .OrderBy(call => call.Status == CallStatus.Active ? 0 : 1)
+            .ThenBy(call => call.AssignedAtUtc)
             .FirstOrDefaultAsync(cancellationToken);
+
+    public Task<bool> HasActiveCallForAgentAsync(
+        Guid agentId,
+        Guid excludedCallId,
+        CancellationToken cancellationToken = default) =>
+        _dbContext.Calls.AnyAsync(
+            call => call.Id != excludedCallId &&
+                call.AssignedAgentId == agentId &&
+                call.Status == CallStatus.Active,
+            cancellationToken);
+
+    public Task<bool> HasOtherAssignedCallsAsync(
+        Guid agentId,
+        Guid excludedCallId,
+        CancellationToken cancellationToken = default) =>
+        _dbContext.Calls.AnyAsync(
+            call => call.Id != excludedCallId &&
+                call.AssignedAgentId == agentId &&
+                call.Status == CallStatus.Assigned,
+            cancellationToken);
 
     public async Task<IReadOnlyCollection<Call>> GetWaitingCallsAsync(
         CancellationToken cancellationToken = default) =>

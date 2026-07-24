@@ -87,29 +87,38 @@ internal sealed class CallService(
     public async Task<CallResponseDto> AcceptAsync(
         Guid callId,
         Guid agentId,
-        CancellationToken cancellationToken = default)
-    {
-        var call = await GetCallAsync(callId, cancellationToken);
-        EnsureAssignedAgent(call, agentId);
-        if (call.Status != CallStatus.Assigned)
-            throw new InvalidOperationException("Only an assigned call can be accepted.");
-
-        var now = DateTimeOffset.UtcNow;
-        call.Status = CallStatus.Active;
-        call.AcceptedAtUtc = now;
-        call.UpdatedAtUtc = now;
-        await callEventRepository.AddAsync(new CallEvent
+        CancellationToken cancellationToken = default) =>
+        await unitOfWork.ExecuteInTransactionAsync(async token =>
         {
-            CallId = call.Id,
-            Call = call,
-            EventType = CallEventType.Accepted,
-            EventAtUtc = now,
-            Details = "Call accepted by the assigned agent."
-        }, cancellationToken);
-        await unitOfWork.SaveChangesAsync(cancellationToken);
+            var call = await GetCallAsync(callId, token);
+            EnsureAssignedAgent(call, agentId);
+            if (call.Status != CallStatus.Assigned)
+                throw new InvalidOperationException("Only an assigned call can be accepted.");
+            if (await callRepository.HasActiveCallForAgentAsync(
+                    agentId,
+                    call.Id,
+                    token))
+            {
+                throw new InvalidOperationException(
+                    "Complete the active call before accepting another assigned call.");
+            }
 
-        return mapper.Map<CallResponseDto>(call);
-    }
+            var now = DateTimeOffset.UtcNow;
+            call.Status = CallStatus.Active;
+            call.AcceptedAtUtc = now;
+            call.UpdatedAtUtc = now;
+            await callEventRepository.AddAsync(new CallEvent
+            {
+                CallId = call.Id,
+                Call = call,
+                EventType = CallEventType.Accepted,
+                EventAtUtc = now,
+                Details = "Call accepted by the assigned agent."
+            }, token);
+            await unitOfWork.SaveChangesAsync(token);
+
+            return mapper.Map<CallResponseDto>(call);
+        }, System.Data.IsolationLevel.Serializable, cancellationToken);
 
     public async Task<CallResponseDto> CompleteAsync(
         Guid callId,
@@ -130,8 +139,12 @@ internal sealed class CallService(
         call.Outcome = request.Outcome!.Value;
         call.Notes = NormalizeOptional(request.Notes);
         call.UpdatedAtUtc = now;
-        agent.Status = AgentStatus.Available;
-        agent.LastAvailableAtUtc = now;
+        var hasAnotherAssignedCall = await callRepository.HasOtherAssignedCallsAsync(
+            agentId,
+            call.Id,
+            cancellationToken);
+        agent.Status = hasAnotherAssignedCall ? AgentStatus.Busy : AgentStatus.Available;
+        agent.LastAvailableAtUtc = hasAnotherAssignedCall ? agent.LastAvailableAtUtc : now;
         agent.UpdatedAtUtc = now;
         await callEventRepository.AddAsync(new CallEvent
         {
@@ -147,9 +160,12 @@ internal sealed class CallService(
         await unitOfWork.SaveChangesAsync(cancellationToken);
 
         var response = mapper.Map<CallResponseDto>(call);
-        await callAssignmentService.TryAssignNextWaitingCallToAgentAsync(
-            agent.Id,
-            cancellationToken);
+        if (!hasAnotherAssignedCall)
+        {
+            await callAssignmentService.TryAssignNextWaitingCallToAgentAsync(
+                agent.Id,
+                cancellationToken);
+        }
         return response;
     }
 

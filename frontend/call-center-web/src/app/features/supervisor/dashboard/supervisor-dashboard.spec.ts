@@ -29,7 +29,7 @@ describe('SupervisorDashboard', () => {
         { provide: DashboardApiService, useValue: { metrics, agents, calls: dashboardCalls } },
         { provide: CallQueuesApiService, useValue: { listActive } },
         { provide: CustomersApiService, useValue: { lookup } },
-        { provide: CallsApiService, useValue: { create, assign } },
+        { provide: CallsApiService, useValue: { create, assignToAgent: assign } },
         { provide: SnackbarNotificationService, useValue: { show } },
       ],
     }).compileComponents();
@@ -70,18 +70,15 @@ describe('SupervisorDashboard', () => {
     expect(create).toHaveBeenCalledWith({ customerId: null, callerPhoneNumber: '+8801812345678', callQueueId: 'queue-1' });
   });
 
-  it('handles no eligible Agent and refreshes stale assignment conflicts', () => {
+  it('assigns a call to the selected eligible Agent and refreshes stale conflicts', () => {
     assign.mockReturnValueOnce(of({ ...waitingCall, status: 'Assigned', assignedAgentId: 'agent-1', assignedAgentName: 'Agent One' }));
     (fixture.nativeElement.querySelector('tbody button') as HTMLButtonElement).click(); fixture.detectChanges();
+    expect(assign).toHaveBeenCalledWith('call-1', 'agent-1');
     expect(show).toHaveBeenCalledWith('Call assigned to Agent One.'); expect(metrics).toHaveBeenCalledTimes(2);
-
-    assign.mockReturnValueOnce(of(null));
-    (fixture.nativeElement.querySelector('tbody button') as HTMLButtonElement).click(); fixture.detectChanges();
-    expect(show).toHaveBeenCalledWith('No eligible agent is currently available.'); expect(metrics).toHaveBeenCalledTimes(3);
 
     assign.mockReturnValueOnce(throwError(() => ({ status: 409, message: 'Conflict', validationErrors: {}, traceId: null })));
     (fixture.nativeElement.querySelector('tbody button') as HTMLButtonElement).click(); fixture.detectChanges();
-    expect(show).toHaveBeenCalledWith('Call state changed. Refreshing the dashboard.'); expect(metrics).toHaveBeenCalledTimes(4);
+    expect(show).toHaveBeenCalledWith('Call state changed. Refreshing the dashboard.'); expect(metrics).toHaveBeenCalledTimes(3);
   });
 
   it('backs off dashboard polling after a failure and returns to polling after recovery', async () => {

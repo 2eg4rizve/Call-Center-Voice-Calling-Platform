@@ -13,6 +13,16 @@ public interface ICallRepository : IRepository<Call>
         Guid agentId,
         CancellationToken cancellationToken = default);
 
+    Task<bool> HasActiveCallForAgentAsync(
+        Guid agentId,
+        Guid excludedCallId,
+        CancellationToken cancellationToken = default);
+
+    Task<bool> HasOtherAssignedCallsAsync(
+        Guid agentId,
+        Guid excludedCallId,
+        CancellationToken cancellationToken = default);
+
     Task<IReadOnlyCollection<Call>> GetWaitingCallsAsync(
         CancellationToken cancellationToken = default);
 

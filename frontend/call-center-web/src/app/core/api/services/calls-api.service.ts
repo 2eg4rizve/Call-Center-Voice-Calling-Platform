@@ -12,6 +12,7 @@ export class CallsApiService {
   waiting(): Observable<CallResponse[]> { return this.http.get<CallResponse[]>(`${this.url}/waiting`); }
   current(): Observable<CallResponse | null> { return this.http.get<CallResponse | null>(`${this.url}/current`); }
   assign(callId: string): Observable<CallResponse | null> { return this.http.post<CallResponse | null>(`${this.url}/${encodeURIComponent(callId)}/assign`, null); }
+  assignToAgent(callId: string, agentId: string): Observable<CallResponse> { return this.http.post<CallResponse>(`${this.url}/${encodeURIComponent(callId)}/assign/${encodeURIComponent(agentId)}`, null); }
   accept(callId: string): Observable<CallResponse> { return this.http.post<CallResponse>(`${this.url}/${encodeURIComponent(callId)}/accept`, null); }
   complete(callId: string, request: CompleteCallRequest): Observable<CallResponse> { return this.http.post<CallResponse>(`${this.url}/${encodeURIComponent(callId)}/complete`, request); }
   history(filters: CallHistoryRequest = {}): Observable<PagedResponse<CallHistoryResponse>> {

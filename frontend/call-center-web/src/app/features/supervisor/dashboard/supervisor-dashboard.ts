@@ -10,6 +10,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { catchError, distinctUntilChanged, EMPTY, exhaustMap, filter, finalize, forkJoin, fromEvent, map, merge, NEVER, startWith, Subject, switchMap, tap, timer } from 'rxjs';
 import { CallQueueResponse } from '../../../core/api/models/queue.models';
 import { CallResponse } from '../../../core/api/models/call.models';
+import { AgentSummaryResponse } from '../../../core/api/models/agent.models';
 import { AgentStatusSummaryResponse, DashboardMetricsResponse, OperationalCallsResponse } from '../../../core/api/models/dashboard.models';
 import { CallQueuesApiService } from '../../../core/api/services/call-queues-api.service';
 import { CallsApiService } from '../../../core/api/services/calls-api.service';
@@ -48,6 +49,7 @@ export class SupervisorDashboard {
   protected readonly loading = signal(true); protected readonly loadError = signal(false); protected readonly pending = signal(false);
   protected readonly formError = signal<string | null>(null); protected readonly createdCall = signal<CallResponse | null>(null);
   protected readonly assigningCallId = signal<string | null>(null);
+  protected readonly selectedAgentIds = signal<Record<string, string>>({});
   protected readonly callForm = new FormGroup({
     mode: new FormControl<CallerMode>('known', { nonNullable: true }),
     phoneNumber: new FormControl('', { nonNullable: true, validators: [Validators.required, Validators.maxLength(30), phoneNumberValidator] }),
@@ -86,11 +88,12 @@ export class SupervisorDashboard {
   }
 
   protected assign(call: CallResponse): void {
-    if (this.assigningCallId() || call.status !== 'Waiting') return;
+    const agentId = this.selectedAgentId(call);
+    if (this.assigningCallId() || call.status !== 'Waiting' || !agentId) return;
     this.assigningCallId.set(call.id);
-    this.callsApi.assign(call.id).pipe(finalize(() => this.assigningCallId.set(null)), takeUntilDestroyed(this.destroyRef)).subscribe({
+    this.callsApi.assignToAgent(call.id, agentId).pipe(finalize(() => this.assigningCallId.set(null)), takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (assigned) => {
-        this.notify.show(assigned ? `Call assigned to ${assigned.assignedAgentName ?? 'an eligible agent'}.` : 'No eligible agent is currently available.');
+        this.notify.show(`Call assigned to ${assigned.assignedAgentName ?? 'the selected agent'}.`);
         this.refreshTrigger.next();
       },
       error: (error: ApiError) => {
@@ -98,6 +101,20 @@ export class SupervisorDashboard {
         if (error.status === 409) this.refreshTrigger.next();
       },
     });
+  }
+
+  protected eligibleAgents(call: CallResponse): AgentSummaryResponse[] {
+    return this.snapshot()?.agents.agents.filter((agent) =>
+      (agent.status === 'Available' || agent.status === 'Busy') &&
+      agent.callQueueNames.includes(call.callQueueName)) ?? [];
+  }
+
+  protected selectedAgentId(call: CallResponse): string {
+    return this.selectedAgentIds()[call.id] ?? this.eligibleAgents(call)[0]?.id ?? '';
+  }
+
+  protected selectAgent(callId: string, agentId: string): void {
+    this.selectedAgentIds.update((selected) => ({ ...selected, [callId]: agentId }));
   }
 
   private increasePollingBackoff(): void { this.pollingFailureCount += 1; const delay = Math.min(this.pollingIntervalMs * (2 ** this.pollingFailureCount), this.maximumPollingDelayMs); this.nextAutomaticPollAt = Date.now() + delay; }

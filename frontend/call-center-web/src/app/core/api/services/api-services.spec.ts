@@ -59,6 +59,7 @@ describe('API services', () => {
     api.waiting().subscribe(); request = http.expectOne('/api/calls/waiting'); request.flush([]);
     api.current().subscribe((value) => expect(value).toBeNull()); request = http.expectOne('/api/calls/current'); request.flush(null, { status: 204, statusText: 'No Content' });
     api.assign('call-guid').subscribe((value) => expect(value).toBeNull()); request = http.expectOne('/api/calls/call-guid/assign'); expect(request.request.method).toBe('POST'); request.flush(null, { status: 204, statusText: 'No Content' });
+    api.assignToAgent('call-guid', 'agent-guid').subscribe(); request = http.expectOne('/api/calls/call-guid/assign/agent-guid'); expect(request.request.method).toBe('POST'); request.flush({});
     api.accept('call-guid').subscribe(); request = http.expectOne('/api/calls/call-guid/accept'); request.flush({});
     api.complete('call-guid', { outcome: 'Resolved', notes: null }).subscribe(); request = http.expectOne('/api/calls/call-guid/complete'); expect(request.request.body.outcome).toBe('Resolved'); request.flush({});
     const fromDateUtc = '2026-07-23T00:00:00.000Z';

@@ -61,6 +61,18 @@ public sealed class CallsController(
         return response is null ? NoContent() : Ok(response);
     }
 
+    [HttpPost("{callId:guid}/assign/{agentId:guid}")]
+    [Authorize(Policy = AuthorizationPolicies.SupervisorOnly)]
+    [ProducesResponseType<CallResponseDto>(StatusCodes.Status200OK)]
+    public async Task<ActionResult<CallResponseDto>> AssignToAgent(
+        Guid callId,
+        Guid agentId,
+        CancellationToken cancellationToken) =>
+        Ok(await callAssignmentService.AssignCallToAgentAsync(
+            callId,
+            agentId,
+            cancellationToken));
+
     [HttpPost("{callId:guid}/accept")]
     [Authorize(Policy = AuthorizationPolicies.AgentOnly)]
     [ProducesResponseType<CallResponseDto>(StatusCodes.Status200OK)]

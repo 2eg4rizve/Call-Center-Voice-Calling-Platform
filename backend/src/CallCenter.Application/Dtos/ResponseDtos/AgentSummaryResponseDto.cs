@@ -13,4 +13,6 @@ public sealed class AgentSummaryResponseDto
     public DateTimeOffset? LastAvailableAtUtc { get; init; }
 
     public string? CurrentCallReference { get; init; }
+
+    public IReadOnlyCollection<string> CallQueueNames { get; init; } = [];
 }
