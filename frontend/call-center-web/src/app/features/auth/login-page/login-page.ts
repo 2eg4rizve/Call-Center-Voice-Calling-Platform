@@ -48,10 +48,10 @@ export class LoginPage {
         this.pending.set(false);
         if (error.validationErrors) applyServerValidationErrors(this.form, error.validationErrors);
         this.errorMessage.set(error.status === 401
-          ? 'Email ba password shothik noy. Abar check kore try korun.'
+          ? 'Email or password is incorrect. Check your credentials and try again.'
           : error.status === 0 || error.status >= 500
-            ? 'Server-er sathe connect kora jacche na. Backend running ache kina check korun.'
-            : 'Sign in complete kora jayni. Form-er information check korun.');
+            ? 'Unable to connect to the server. Make sure the backend is running and try again.'
+            : 'Unable to sign in. Check the form and try again.');
       },
     });
   }

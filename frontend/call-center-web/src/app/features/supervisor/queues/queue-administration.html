@@ -1,13 +1,13 @@
 <app-page-header eyebrow="Supervisor" title="Queue administration" description="Create, edit, and deactivate active call queues." />
 
-<div class="limitation" role="note"><strong>Active queues only.</strong> Backend inactive queue list ba reactivation endpoint dey na. Deactivate korle queue-ti ei UI theke ar restore kora jabe na.</div>
+<div class="limitation" role="note"><strong>Active queues only.</strong> The backend does not provide an inactive-queue list or reactivation endpoint. A deactivated queue cannot be restored from this interface.</div>
 @if (formError()) { <div class="form-error" role="alert">{{ formError() }}</div> }
 
 <div class="layout">
   <section>
     @if (loading()) { <app-feedback-state state="loading" title="Loading queues" /> }
-    @else if (loadError()) { <app-feedback-state state="error" title="Queues unavailable" message="API connection check kore abar try korun." (retry)="load()" /> }
-    @else if (!queues().length) { <app-feedback-state state="empty" title="No active queues" message="Create form diye prothom call queue add korun." /> }
+    @else if (loadError()) { <app-feedback-state state="error" title="Queues unavailable" message="Check the API connection and try again." (retry)="load()" /> }
+    @else if (!queues().length) { <app-feedback-state state="empty" title="No active queues" message="Use the create form to add your first call queue." /> }
     @else {
       <app-responsive-table label="Active call queues">
         <table><thead><tr><th>Queue</th><th>Description</th><th>Status</th><th><span class="sr-only">Action</span></th></tr></thead><tbody>
@@ -26,7 +26,7 @@
           <ng-container [ngTemplateOutlet]="queueFields" [ngTemplateOutletContext]="{ form: editForm }" />
           <div class="actions"><button matButton="filled" type="submit" [appPendingAction]="pending()">{{ pending() ? 'Saving…' : 'Save changes' }}</button><button matButton type="button" (click)="cancelEdit()">Cancel</button></div>
         </form>
-        <div class="danger-zone"><strong>Danger zone</strong><p>Deactivate korle active-only list theke queue remove hoye jabe.</p><button matButton type="button" class="danger" [appPendingAction]="pending()" (click)="deactivate()">Deactivate queue</button></div>
+        <div class="danger-zone"><strong>Danger zone</strong><p>Deactivating this queue will remove it from the active-only list.</p><button matButton type="button" class="danger" [appPendingAction]="pending()" (click)="deactivate()">Deactivate queue</button></div>
       </mat-card-content></mat-card>
     } @else {
       <mat-card appearance="outlined"><mat-card-header><mat-card-title>Create queue</mat-card-title><mat-card-subtitle>Name required; description optional.</mat-card-subtitle></mat-card-header><mat-card-content>

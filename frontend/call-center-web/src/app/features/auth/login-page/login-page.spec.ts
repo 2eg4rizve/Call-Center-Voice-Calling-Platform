@@ -43,7 +43,7 @@ describe('LoginPage', () => {
     submit();
     expect((fixture.nativeElement as HTMLElement).textContent).toContain('Email address required.');
     fill('invalid', 'secret'); submit();
-    expect((fixture.nativeElement as HTMLElement).textContent).toContain('Valid email address din.');
+    expect((fixture.nativeElement as HTMLElement).textContent).toContain('Enter a valid email address.');
     expect(login).not.toHaveBeenCalled();
   });
 
@@ -57,11 +57,11 @@ describe('LoginPage', () => {
   it('shows safe invalid-credential and unavailable-server errors', () => {
     let response = new Subject<LoginResponse>(); login.mockReturnValue(response); fill(); submit();
     response.error({ status: 401, validationErrors: {} }); fixture.detectChanges();
-    expect((fixture.nativeElement as HTMLElement).textContent).toContain('Email ba password shothik noy');
+    expect((fixture.nativeElement as HTMLElement).textContent).toContain('Email or password is incorrect');
 
     response = new Subject<LoginResponse>(); login.mockReturnValue(response); submit();
     response.error({ status: 0, validationErrors: {} }); fixture.detectChanges();
-    expect((fixture.nativeElement as HTMLElement).textContent).toContain('Server-er sathe connect kora jacche na');
+    expect((fixture.nativeElement as HTMLElement).textContent).toContain('Unable to connect to the server');
   });
 
   it.each([

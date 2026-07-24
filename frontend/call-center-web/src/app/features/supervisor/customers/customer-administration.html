@@ -7,14 +7,14 @@
     <mat-card appearance="outlined">
       <mat-card-header><mat-card-title>Find a customer</mat-card-title></mat-card-header>
       <mat-card-content>
-        <p class="supporting">Lookup exact phone number diye kaj kore. Country code-shoho number use korun.</p>
+        <p class="supporting">Customer lookup uses an exact phone-number match. Include the country code.</p>
         <form class="lookup" [formGroup]="lookupForm" (ngSubmit)="lookup()">
           <mat-form-field appearance="outline">
             <mat-label>Phone number</mat-label>
             <input matInput formControlName="phoneNumber" placeholder="+8801712345678" autocomplete="tel" />
             <mat-hint>8–15 digits; optional leading +</mat-hint>
             @if (lookupForm.controls.phoneNumber.touched && lookupForm.controls.phoneNumber.hasError('required')) { <mat-error>Phone number required.</mat-error> }
-            @if (lookupForm.controls.phoneNumber.hasError('phoneNumber')) { <mat-error>Valid phone din, example: +8801712345678.</mat-error> }
+            @if (lookupForm.controls.phoneNumber.hasError('phoneNumber')) { <mat-error>Enter a valid phone number, for example: +8801712345678.</mat-error> }
             @if (lookupForm.controls.phoneNumber.hasError('maxlength')) { <mat-error>Maximum 30 characters allowed.</mat-error> }
             @if (lookupForm.controls.phoneNumber.hasError('server')) { <mat-error>{{ lookupForm.controls.phoneNumber.getError('server')[0] }}</mat-error> }
           </mat-form-field>
@@ -43,7 +43,7 @@
     } @else if (notFound()) {
       <mat-card appearance="outlined" class="empty-state">
         <mat-card-title>Customer not found</mat-card-title>
-        <p>Ei number-er jonno notun customer record create korte paren.</p>
+        <p>You can create a new customer record for this phone number.</p>
       </mat-card>
     }
   </section>
@@ -53,7 +53,7 @@
       <mat-card appearance="outlined">
         <mat-card-header><mat-card-title>Edit customer</mat-card-title><mat-card-subtitle>{{ item.customerReferenceNumber }}</mat-card-subtitle></mat-card-header>
         <mat-card-content>
-          @if (customerPhone()) { <div class="read-only"><span>Phone number</span><strong>{{ customerPhone() }}</strong><small>API phone update support kore na.</small></div> }
+          @if (customerPhone()) { <div class="read-only"><span>Phone number</span><strong>{{ customerPhone() }}</strong><small>Phone numbers cannot be updated through the current API.</small></div> }
           <form [formGroup]="editForm" (ngSubmit)="update()">
             <ng-container *ngTemplateOutlet="customerFields; context: { form: editForm }" />
             <button matButton="filled" type="submit" [appPendingAction]="pending()">{{ pending() ? 'Saving…' : 'Save changes' }}</button>
@@ -64,12 +64,12 @@
       <mat-card appearance="outlined">
         <mat-card-header><mat-card-title>Create customer</mat-card-title></mat-card-header>
         <mat-card-content>
-          <p class="supporting">Name ar phone required. Baki information optional.</p>
+          <p class="supporting">Name and phone number are required. All other information is optional.</p>
           <form [formGroup]="createForm" (ngSubmit)="create()">
             <mat-form-field appearance="outline">
               <mat-label>Phone number</mat-label><input matInput formControlName="phoneNumber" placeholder="+8801712345678" />
               @if (createForm.controls.phoneNumber.touched && createForm.controls.phoneNumber.hasError('required')) { <mat-error>Phone number required.</mat-error> }
-              @if (createForm.controls.phoneNumber.hasError('phoneNumber')) { <mat-error>Valid phone din, example: +8801712345678.</mat-error> }
+              @if (createForm.controls.phoneNumber.hasError('phoneNumber')) { <mat-error>Enter a valid phone number, for example: +8801712345678.</mat-error> }
               @if (createForm.controls.phoneNumber.hasError('maxlength')) { <mat-error>Maximum 30 characters allowed.</mat-error> }
               @if (createForm.controls.phoneNumber.hasError('server')) { <mat-error>{{ createForm.controls.phoneNumber.getError('server')[0] }}</mat-error> }
             </mat-form-field>
@@ -90,7 +90,7 @@
       @if (form.controls.name.hasError('server')) { <mat-error>{{ form.controls.name.getError('server')[0] }}</mat-error> }
     </mat-form-field>
     <mat-form-field appearance="outline"><mat-label>Email address</mat-label><input matInput type="email" formControlName="emailAddress" />
-      @if (form.controls.emailAddress.hasError('email')) { <mat-error>Valid email din, example: customer&#64;example.com.</mat-error> }
+      @if (form.controls.emailAddress.hasError('email')) { <mat-error>Enter a valid email, for example: customer&#64;example.com.</mat-error> }
       @if (form.controls.emailAddress.hasError('maxlength')) { <mat-error>Maximum 256 characters allowed.</mat-error> }
       @if (form.controls.emailAddress.hasError('server')) { <mat-error>{{ form.controls.emailAddress.getError('server')[0] }}</mat-error> }
     </mat-form-field>

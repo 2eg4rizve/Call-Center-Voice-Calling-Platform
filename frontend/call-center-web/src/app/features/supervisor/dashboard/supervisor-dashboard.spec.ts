@@ -81,7 +81,7 @@ describe('SupervisorDashboard', () => {
 
     assign.mockReturnValueOnce(throwError(() => ({ status: 409, message: 'Conflict', validationErrors: {}, traceId: null })));
     (fixture.nativeElement.querySelector('tbody button') as HTMLButtonElement).click(); fixture.detectChanges();
-    expect(show).toHaveBeenCalledWith('Call state changed. Dashboard refresh kora hocche.'); expect(metrics).toHaveBeenCalledTimes(4);
+    expect(show).toHaveBeenCalledWith('Call state changed. Refreshing the dashboard.'); expect(metrics).toHaveBeenCalledTimes(4);
   });
 
   it('backs off dashboard polling after a failure and returns to polling after recovery', async () => {

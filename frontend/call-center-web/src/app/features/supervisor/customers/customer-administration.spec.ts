@@ -65,7 +65,7 @@ describe('CustomerAdministration', () => {
     (fixture.nativeElement.querySelector('.lookup') as HTMLFormElement).dispatchEvent(new Event('submit'));
     response.error({ status: 404, message: 'Not found', validationErrors: {}, traceId: null }); fixture.detectChanges();
 
-    expect((fixture.nativeElement as HTMLElement).textContent).toContain('kono customer pawa jayni');
+    expect((fixture.nativeElement as HTMLElement).textContent).toContain('No customer was found');
     expect((fixture.nativeElement.querySelector('aside input[formControlName="phoneNumber"]') as HTMLInputElement).value).toBe('+8801712345678');
   });
 
@@ -97,7 +97,7 @@ describe('CustomerAdministration', () => {
 
     const text = (fixture.nativeElement as HTMLElement).textContent;
     expect(text).toContain('Maximum 200 characters allowed.');
-    expect(text).toContain('Valid email din');
+    expect(text).toContain('Enter a valid email');
     expect(text).toContain('Maximum 100 characters allowed.');
     expect(text).toContain('Maximum 1000 characters allowed.');
     expect(create).not.toHaveBeenCalled();

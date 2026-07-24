@@ -33,7 +33,7 @@ describe('QueueAdministration', () => {
   it('loads the active responsive queue list and documents inactive limitations', () => {
     const text = (fixture.nativeElement as HTMLElement).textContent;
     expect(listActive).toHaveBeenCalledOnce(); expect(text).toContain('Customer Support');
-    expect(text).toContain('General calls'); expect(text).toContain('reactivation endpoint dey na');
+    expect(text).toContain('General calls'); expect(text).toContain('reactivation endpoint');
   });
 
   it('validates and creates a queue, then refreshes the list', () => {

@@ -56,7 +56,7 @@ export class QueueAdministration {
     this.formError.set(null);
     if (this.createForm.invalid || this.pending()) {
       this.createForm.markAllAsTouched();
-      this.formError.set('Queue name ebong highlighted validation message-gulo check korun.');
+      this.formError.set('Enter a queue name and correct the highlighted validation errors.');
       return;
     }
     const value = this.createForm.getRawValue();
@@ -65,7 +65,7 @@ export class QueueAdministration {
       .pipe(finalize(() => this.pending.set(false)), takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: () => { this.createForm.reset({ name: '', description: '' }); this.notify.show('Queue created successfully.'); this.load(); },
-        error: (error: ApiError) => this.handleError(this.createForm, error, 'Queue create kora jayni.'),
+        error: (error: ApiError) => this.handleError(this.createForm, error, 'Unable to create the queue.'),
       });
   }
 
@@ -79,14 +79,14 @@ export class QueueAdministration {
   protected update(): void {
     const queue = this.selected(); this.formError.set(null);
     if (!queue || this.editForm.invalid || this.pending()) {
-      this.editForm.markAllAsTouched(); this.formError.set('Queue name ebong highlighted validation message-gulo check korun.'); return;
+      this.editForm.markAllAsTouched(); this.formError.set('Enter a queue name and correct the highlighted validation errors.'); return;
     }
     const value = this.editForm.getRawValue(); this.pending.set(true);
     this.api.update(queue.id, { name: value.name.trim(), description: this.optional(value.description), isActive: true })
       .pipe(finalize(() => this.pending.set(false)), takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: () => { this.notify.show('Queue updated successfully.'); this.selected.set(null); this.load(); },
-        error: (error: ApiError) => this.handleError(this.editForm, error, 'Queue update kora jayni.'),
+        error: (error: ApiError) => this.handleError(this.editForm, error, 'Unable to update the queue.'),
       });
   }
 
@@ -95,7 +95,7 @@ export class QueueAdministration {
     if (!queue || this.pending()) return;
     this.confirmation.confirm({
       title: `Deactivate ${queue.name}?`,
-      message: 'Queue-ti active list theke disappear korbe. Current API inactive queue list ba reactivate support kore na, tai ei UI theke abar active kora jabe na.',
+      message: 'This queue will disappear from the active list. The current API does not support listing or reactivating inactive queues, so it cannot be restored from this interface.',
       confirmLabel: 'Deactivate queue', destructive: true,
     }).pipe(
       filter((confirmed) => confirmed === true),
@@ -111,7 +111,7 @@ export class QueueAdministration {
         this.queues.update((queues) => queues.filter((item) => item.id !== queue.id));
         this.selected.set(null); this.notify.show('Queue deactivated.');
       },
-      error: (error: ApiError) => this.handleError(this.editForm, error, 'Queue deactivate kora jayni.'),
+      error: (error: ApiError) => this.handleError(this.editForm, error, 'Unable to deactivate the queue.'),
     });
   }
 

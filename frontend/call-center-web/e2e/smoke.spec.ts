@@ -24,7 +24,7 @@ test('invalid credentials stay on login and show a safe error', async ({ page })
   await page.getByRole('button', { name: 'Sign in', exact: true }).click();
 
   await expect(page).toHaveURL(/\/login$/);
-  await expect(page.getByRole('alert')).toHaveText('Email ba password shothik noy. Abar check kore try korun.');
+  await expect(page.getByRole('alert')).toHaveText('Email or password is incorrect. Check your credentials and try again.');
   expect(await page.evaluate(() => sessionStorage.getItem('call-center.session'))).toBeNull();
 });
 

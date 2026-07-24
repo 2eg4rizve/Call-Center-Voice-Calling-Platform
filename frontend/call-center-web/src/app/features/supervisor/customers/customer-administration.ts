@@ -65,7 +65,7 @@ export class CustomerAdministration {
     this.clearFeedback();
     if (this.lookupForm.invalid || this.pending()) {
       this.lookupForm.markAllAsTouched();
-      this.message.set('Valid phone number din, example: +8801712345678.');
+      this.message.set('Enter a valid phone number, for example: +8801712345678.');
       return;
     }
     const phone = this.lookupForm.controls.phoneNumber.value.trim();
@@ -76,10 +76,10 @@ export class CustomerAdministration {
         if (error.status === 404) {
           this.notFound.set(true);
           this.createForm.controls.phoneNumber.setValue(phone);
-          this.message.set('Ei phone number-e kono customer pawa jayni. Nicher form diye create korte paren.');
+          this.message.set('No customer was found for this phone number. Use the form below to create one.');
           return;
         }
-        this.handleError(this.lookupForm, error, 'Customer lookup kora jayni.');
+        this.handleError(this.lookupForm, error, 'Unable to look up the customer.');
       },
     });
   }
@@ -88,7 +88,7 @@ export class CustomerAdministration {
     this.clearFeedback();
     if (this.createForm.invalid || this.pending()) {
       this.createForm.markAllAsTouched();
-      this.message.set('Required field ebong highlighted validation message-gulo check korun.');
+      this.message.set('Complete the required fields and correct the highlighted validation errors.');
       return;
     }
     const value = this.createForm.getRawValue();
@@ -103,7 +103,7 @@ export class CustomerAdministration {
         this.notify.show('Customer created successfully.');
         void this.router.navigate(['/supervisor/customers', customer.id], { replaceUrl: true });
       },
-      error: (error: ApiError) => this.handleError(this.createForm, error, 'Customer create kora jayni.'),
+      error: (error: ApiError) => this.handleError(this.createForm, error, 'Unable to create the customer.'),
     });
   }
 
@@ -112,7 +112,7 @@ export class CustomerAdministration {
     this.message.set(null);
     if (!customer || this.editForm.invalid || this.pending()) {
       this.editForm.markAllAsTouched();
-      this.message.set('Required field ebong highlighted validation message-gulo check korun.');
+      this.message.set('Complete the required fields and correct the highlighted validation errors.');
       return;
     }
     const value = this.editForm.getRawValue();
@@ -122,7 +122,7 @@ export class CustomerAdministration {
       customerCategory: this.optional(value.customerCategory), recentInteractionSummary: this.optional(value.recentInteractionSummary),
     }).pipe(finalize(() => this.pending.set(false)), takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (updated) => { this.showCustomer(updated, this.customerPhone()); this.notify.show('Customer updated successfully.'); },
-      error: (error: ApiError) => this.handleError(this.editForm, error, 'Customer update kora jayni.'),
+      error: (error: ApiError) => this.handleError(this.editForm, error, 'Unable to update the customer.'),
     });
   }
 
@@ -138,7 +138,7 @@ export class CustomerAdministration {
     this.pending.set(true);
     this.api.get(customerId).pipe(finalize(() => this.pending.set(false)), takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (customer) => this.showCustomer(customer, ''),
-      error: (error: ApiError) => { this.notFound.set(error.status === 404); this.message.set(error.status === 404 ? 'Customer-ti pawa jayni.' : error.message); },
+      error: (error: ApiError) => { this.notFound.set(error.status === 404); this.message.set(error.status === 404 ? 'The customer was not found.' : error.message); },
     });
   }
 

@@ -1,9 +1,9 @@
 <app-page-header eyebrow="Supervisor" title="Operations dashboard" description="Monitor live workload, Agent availability, and inbound call assignment." />
 
 @if (loading() && !snapshot()) { <app-feedback-state state="loading" title="Loading operations" /> }
-@else if (loadError() && !snapshot()) { <app-feedback-state state="error" title="Dashboard unavailable" message="Metrics, Agents, ba call data load hoyni." (retry)="retry()" /> }
+@else if (loadError() && !snapshot()) { <app-feedback-state state="error" title="Dashboard unavailable" message="Unable to load metrics, agents, or call data." (retry)="retry()" /> }
 @else if (snapshot(); as data) {
-  @if (loadError()) { <div class="refresh-error" role="alert">Latest refresh fail koreche. Last successful data dekhano hocche. <button matButton type="button" (click)="retry()">Retry now</button></div> }
+  @if (loadError()) { <div class="refresh-error" role="alert">The latest refresh failed. Showing the last successfully loaded data. <button matButton type="button" (click)="retry()">Retry now</button></div> }
   <section class="metrics" aria-label="Operational metrics">
     <mat-card appearance="outlined"><span>Total Agents</span><strong>{{ data.metrics.totalAgents }}</strong><small>{{ data.metrics.availableAgents }} available · {{ data.metrics.busyAgents }} busy</small></mat-card>
     <mat-card appearance="outlined"><span>Waiting Calls</span><strong>{{ data.metrics.waitingCalls }}</strong><small>{{ data.metrics.assignedCalls }} assigned</small></mat-card>
@@ -39,10 +39,10 @@
       @if (formError()) { <div class="form-error" role="alert">{{ formError() }}</div> }
       <form [formGroup]="callForm" (ngSubmit)="createCall()">
         <mat-radio-group formControlName="mode" aria-label="Caller type"><mat-radio-button value="known">Known customer</mat-radio-button><mat-radio-button value="unknown">Unknown caller</mat-radio-button></mat-radio-group>
-        <p class="mode-help">{{ callForm.controls.mode.value === 'known' ? 'Phone diye exact customer lookup kore customer ID submit hobe.' : 'Caller phone submit hobe; customer ID submit hobe na.' }}</p>
+        <p class="mode-help">{{ callForm.controls.mode.value === 'known' ? 'The phone number is used for an exact customer lookup, and the customer ID is submitted.' : 'The caller phone number is submitted without a customer ID.' }}</p>
         <mat-form-field appearance="outline"><mat-label>{{ callForm.controls.mode.value === 'known' ? 'Customer phone' : 'Caller phone' }}</mat-label><input matInput formControlName="phoneNumber" placeholder="+8801712345678" />
           @if (callForm.controls.phoneNumber.touched && callForm.controls.phoneNumber.hasError('required')) { <mat-error>Phone number required.</mat-error> }
-          @if (callForm.controls.phoneNumber.hasError('phoneNumber')) { <mat-error>Valid phone din, example: +8801712345678.</mat-error> }
+          @if (callForm.controls.phoneNumber.hasError('phoneNumber')) { <mat-error>Enter a valid phone number, for example: +8801712345678.</mat-error> }
           @if (callForm.controls.phoneNumber.hasError('maxlength')) { <mat-error>Maximum 30 characters allowed.</mat-error> }
         </mat-form-field>
         <mat-form-field appearance="outline"><mat-label>Active queue</mat-label><mat-select formControlName="callQueueId">@for (queue of queues(); track queue.id) { <mat-option [value]="queue.id">{{ queue.name }}</mat-option> }</mat-select>

@@ -9,7 +9,7 @@ test('client validation and unavailable login API show actionable messages', asy
   await expect(page.getByText('Email address required.')).toBeVisible(); await expect(page.getByText('Password required.')).toBeVisible();
   await page.route('**/api/auth/login', (route) => route.abort('connectionrefused'));
   await page.getByLabel('Email address').fill('agent@example.com'); await page.getByLabel('Password', { exact: true }).fill('Demo@12345'); await page.getByRole('button', { name: 'Sign in', exact: true }).click();
-  await expect(page.getByRole('alert')).toContainText('Server-er sathe connect kora jacche na');
+  await expect(page.getByRole('alert')).toContainText('Unable to connect to the server');
 });
 
 test('204 current call and empty history render non-error empty states', async ({ page }) => {
@@ -53,5 +53,5 @@ test('409 assignment conflict informs the user and refreshes dashboard state', a
     if (path === '/api/dashboard/agents') return json({ agents: [] }); if (path === '/api/dashboard/calls') { callReads++; return json({ waitingCalls: [waitingCall], activeCalls: [] }); }
     if (path === '/api/calls/call-id/assign') return route.fulfill({ status: 409, contentType: 'application/json', body: '{}' }); return route.fulfill({ status: 404, body: '{}' }); });
   await page.goto('/supervisor/dashboard'); await page.getByRole('button', { name: 'Assign', exact: true }).click();
-  await expect(page.getByText('Call state changed. Dashboard refresh kora hocche.')).toBeVisible(); await expect.poll(() => callReads).toBeGreaterThan(1);
+  await expect(page.getByText('Call state changed. Refreshing the dashboard.')).toBeVisible(); await expect.poll(() => callReads).toBeGreaterThan(1);
 });

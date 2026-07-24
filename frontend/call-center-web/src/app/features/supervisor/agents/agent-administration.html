@@ -11,7 +11,7 @@
 
     <aside class="panels">
       <mat-card appearance="outlined"><mat-card-header><mat-card-title>Create agent</mat-card-title></mat-card-header><mat-card-content>
-        <p class="requirements">All fields required. Password 8–100 characters-er sathe minimum 1 uppercase, 1 lowercase, ar 1 special character thakte hobe.</p>
+        <p class="requirements">All fields are required. The password must be 8–100 characters and include at least one uppercase letter, one lowercase letter, and one special character.</p>
         <form [formGroup]="createForm" (ngSubmit)="create()">
           <mat-form-field appearance="outline"><mat-label>Full name</mat-label><input matInput formControlName="fullName" />
             @if (createForm.controls.fullName.touched && createForm.controls.fullName.hasError('required')) { <mat-error>Full name required.</mat-error> }
@@ -25,7 +25,7 @@
           </mat-form-field>
           <mat-form-field appearance="outline"><mat-label>Email</mat-label><input matInput type="email" formControlName="email" />
             @if (createForm.controls.email.touched && createForm.controls.email.hasError('required')) { <mat-error>Email required.</mat-error> }
-            @if (createForm.controls.email.hasError('email')) { <mat-error>Valid email din, example: agent&#64;company.com</mat-error> }
+            @if (createForm.controls.email.hasError('email')) { <mat-error>Enter a valid email, for example: agent&#64;company.com</mat-error> }
             @if (createForm.controls.email.hasError('maxlength')) { <mat-error>Maximum 256 characters allowed.</mat-error> }
             @if (createForm.controls.email.hasError('server')) { <mat-error>{{ createForm.controls.email.getError('server')[0] }}</mat-error> }
           </mat-form-field>
@@ -33,7 +33,7 @@
             @if (createForm.controls.password.touched && createForm.controls.password.hasError('required')) { <mat-error>Password required.</mat-error> }
             @if (createForm.controls.password.hasError('minlength')) { <mat-error>Minimum 8 characters required.</mat-error> }
             @if (createForm.controls.password.hasError('maxlength')) { <mat-error>Maximum 100 characters allowed.</mat-error> }
-            @if (createForm.controls.password.hasError('pattern')) { <mat-error>Minimum 1 uppercase, 1 lowercase, ar 1 special character required.</mat-error> }
+            @if (createForm.controls.password.hasError('pattern')) { <mat-error>Include at least one uppercase letter, one lowercase letter, and one special character.</mat-error> }
             @if (createForm.controls.password.hasError('server')) { <mat-error>{{ createForm.controls.password.getError('server')[0] }}</mat-error> }
           </mat-form-field>
           <button matButton="filled" type="submit" [appPendingAction]="pending()">{{ pending() ? 'Creating…' : 'Create agent' }}</button>
@@ -48,9 +48,9 @@
         </mat-form-field><button matButton="filled" type="submit" [appPendingAction]="pending()">Save name</button></form>
         <hr />
         <form [formGroup]="assignmentForm" (ngSubmit)="assign()"><mat-form-field appearance="outline"><mat-label>Add to queue</mat-label><mat-select formControlName="callQueueId">@for (queue of queues(); track queue.id) { <mat-option [value]="queue.id">{{ queue.name }}</mat-option> }</mat-select>
-          @if (assignmentForm.controls.callQueueId.touched && assignmentForm.controls.callQueueId.hasError('required')) { <mat-error>Queue select kora required.</mat-error> }
+          @if (assignmentForm.controls.callQueueId.touched && assignmentForm.controls.callQueueId.hasError('required')) { <mat-error>Selecting a queue is required.</mat-error> }
         </mat-form-field><button matButton type="submit" [appPendingAction]="pending()">Assign queue</button></form>
-        <p class="limitation">Queue assignment additive and idempotent. Current API queue membership reliably display ba remove korte pare na.</p>
+        <p class="limitation">Queue assignment is additive and idempotent. The current API cannot reliably display or remove queue memberships.</p>
       </mat-card-content></mat-card> }
     </aside>
   </div>

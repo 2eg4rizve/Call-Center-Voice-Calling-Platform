@@ -55,7 +55,7 @@ export class SupervisorDashboard {
   });
 
   constructor() {
-    this.queuesApi.listActive().pipe(takeUntilDestroyed()).subscribe({ next: (queues) => this.queues.set(queues), error: () => this.formError.set('Active queue load kora jayni.') });
+    this.queuesApi.listActive().pipe(takeUntilDestroyed()).subscribe({ next: (queues) => this.queues.set(queues), error: () => this.formError.set('Unable to load active queues.') });
     const visibility = fromEvent(document, 'visibilitychange').pipe(startWith(null), map(() => !document.hidden), distinctUntilChanged());
     const automaticRefresh = timer(0, this.pollingIntervalMs).pipe(map(() => false));
     const manualRefresh = this.refreshTrigger.pipe(map(() => true));
@@ -74,14 +74,14 @@ export class SupervisorDashboard {
 
   protected createCall(): void {
     this.formError.set(null); this.createdCall.set(null);
-    if (this.callForm.invalid || this.pending()) { this.callForm.markAllAsTouched(); this.formError.set('Valid phone number ar active queue select korun.'); return; }
+    if (this.callForm.invalid || this.pending()) { this.callForm.markAllAsTouched(); this.formError.set('Enter a valid phone number and select an active queue.'); return; }
     const value = this.callForm.getRawValue(); const phone = value.phoneNumber.trim(); this.pending.set(true);
     const request = value.mode === 'known'
       ? this.customersApi.lookup(phone).pipe(switchMap((customer) => this.callsApi.create({ customerId: customer.id, callerPhoneNumber: null, callQueueId: value.callQueueId })))
       : this.callsApi.create({ customerId: null, callerPhoneNumber: phone, callQueueId: value.callQueueId });
     request.pipe(finalize(() => this.pending.set(false)), takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (call) => { this.createdCall.set(call); this.notify.show('Inbound call created.'); this.refreshTrigger.next(); },
-      error: (error: ApiError) => this.formError.set(value.mode === 'known' && error.status === 404 ? 'Ei phone number-e known customer pawa jayni. Customer create korun ba Unknown caller mode use korun.' : (error.message || 'Call create kora jayni.')),
+      error: (error: ApiError) => this.formError.set(value.mode === 'known' && error.status === 404 ? 'No known customer was found for this phone number. Create the customer or use Unknown caller mode.' : (error.message || 'Unable to create the call.')),
     });
   }
 
@@ -94,7 +94,7 @@ export class SupervisorDashboard {
         this.refreshTrigger.next();
       },
       error: (error: ApiError) => {
-        this.notify.show(error.status === 409 ? 'Call state changed. Dashboard refresh kora hocche.' : (error.message || 'Call assign kora jayni.'));
+        this.notify.show(error.status === 409 ? 'Call state changed. Refreshing the dashboard.' : (error.message || 'Unable to assign the call.'));
         if (error.status === 409) this.refreshTrigger.next();
       },
     });
